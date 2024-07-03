@@ -14,7 +14,7 @@ TrueOG is pre-release software. Our to-do list can be viewed [here](https://true
 
 The TrueOG Server bootstrap makes it *incredibly* easy to spin up your own server based on TrueOG's source code. Instead of beginning your journey with a blank plugins folder, you begin with a fully featured SMP and minigames server, which can be automatically built from source on a wide variety of operating systems.
 
-Our admin team is structured as a unionized, democratic worker cooperative. We release everything possible into the public domain. Our dedication to these principles is re-enforced in rebellion against OG Network's selfish refusal to share their code for OG:SMP Season 1, forcing TrueOG to be built from scratch, resulting in a long development period. We oppose their financial exploitation of children with P2W gambling elements. At TrueOG Network, we believe players are greater than profit.**
+Our admin team is structured as a unionized, democratic worker cooperative. We release everything possible into the public domain. Our dedication to these principles is re-enforced in rebellion against OG Network's selfish refusal to share their code for OG:SMP Season 1, forcing TrueOG to be built from scratch, resulting in a long development period. We oppose their financial exploitation of children with P2W gambling elements. At TrueOG Network, we believe **players are greater than profit.**
 
 **TrueOG Network Recommends:**
 
