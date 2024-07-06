@@ -1,6 +1,6 @@
 # TrueOG Network
 
-[![NoSystemD](https://raw.githubusercontent.com/true-og/website/main/assets/images/nossytemd.svg)](https://trueog.network/) [![discord-plural](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/ma9pMYpBU6) <img alt="purpur" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/purpur_vector.svg"> # TrueOG Network
+[![NoSystemD](https://raw.githubusercontent.com/true-og/website/main/assets/images/nossytemd.svg)](https://trueog.network/) [![discord-plural](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/ma9pMYpBU6) <img alt="purpur" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/purpur_vector.svg">
 
 ![Icon](https://github.com/true-og/website/blob/main/assets/images/logos/Logo-Alternate-Transparent.png)
 
