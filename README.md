@@ -1,5 +1,9 @@
 # TrueOG Network
 
+![NoSystemD](https://raw.githubusercontent.com/true-og/website/main/assets/images/nossytemd.svg)
+
+[![discord-plural](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/ma9pMYpBU6)
+
 ![Icon](https://github.com/true-og/website/blob/main/assets/images/logos/Logo-Alternate-Transparent.png)
 
 *ad astra per aspera*
