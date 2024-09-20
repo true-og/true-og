@@ -20,8 +20,8 @@ Our admin team is structured as a unionized, democratic worker cooperative. We r
 
 **TrueOG Network Recommends:**
 
-- [Devuan Linux](https://devuan.org/) + [runit](https://unixcop.com/using-runit-on-devuan/)
-- [Void Linux](https://voidlinux.org/)
+- [Devuan Linux](https://devuan.org/) + [OpenRC](https://itsfoss.community/t/switching-init-systems-in-devuan/11819).
+- [Void Linux](https://voidlinux.org/).
 
 **Platforms the TrueOG Bootstrap can run on:**
 
