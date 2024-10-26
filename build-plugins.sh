@@ -51,6 +51,33 @@ is_cached() {
     return 1  # Not cached
 }
 
+select_preferred_jar() {
+    local jars=("$@")
+    # Prefer jars without "-all" in their name
+    local preferred_jars=()
+    for jar in "${jars[@]}"; do
+        basename=$(basename "$jar")
+        if [[ ! "$basename" =~ -all\.jar$ ]]; then
+            preferred_jars+=("$jar")
+        fi
+    done
+    if [[ ${#preferred_jars[@]} -eq 0 ]]; then
+        # No jars without "-all.jar", use the original list
+        preferred_jars=("${jars[@]}")
+    fi
+    # Select the jar with the shortest name (excluding path)
+    preferred_jar="${preferred_jars[0]}"
+    shortest_name_length=${#preferred_jar}
+    for jar in "${preferred_jars[@]}"; do
+        basename=$(basename "$jar")
+        if [[ ${#basename} -lt $shortest_name_length ]]; then
+            preferred_jar="$jar"
+            shortest_name_length=${#basename}
+        fi
+    done
+    echo "$preferred_jar"
+}
+
 total_dirs=$(find "$BASE_DIR" -mindepth 2 -maxdepth 2 -type d ! -name '.*' | wc -l)
 completed=0
 
@@ -60,11 +87,20 @@ sort_by_prefix_order() {
     local arr=("$@")
     local sorted=()
     for prefix in "${build_order[@]}"; do
+        # Collect items for this prefix
+        local prefix_items=()
         for item in "${arr[@]}"; do
             if [[ $item == "$prefix/"* ]]; then
-                sorted+=("$item")
+                prefix_items+=("$item")
             fi
         done
+        # Sort the prefix_items alphabetically
+        if [[ ${#prefix_items[@]} -gt 0 ]]; then
+            IFS=$'\n' sorted_prefix_items=($(sort <<<"${prefix_items[*]}"))
+            unset IFS
+            # Add to sorted list
+            sorted+=("${sorted_prefix_items[@]}")
+        fi
     done
     echo "${sorted[@]}"
 }
@@ -115,39 +151,74 @@ for prefix in "${build_order[@]}"; do
             built_jars=()
             for build_output_dir in "${build_output_dirs[@]}"; do
                 if [[ -d "$build_output_dir" ]]; then
-                    jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
+                    jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
+                        ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
                     built_jars+=("${jars_in_dir[@]}")
                 fi
             done
 
-            # Check if built jars exist and compare with server directory
-            jar_cached=false
             if [[ ${#built_jars[@]} -gt 0 ]]; then
-                for built_jar in "${built_jars[@]}"; do
-                    built_hash=$(hash_file "$built_jar")
-                    matching_server_jar=""
-                    for server_jar in "$OUTPUT_DIR"/*.jar; do
-                        if [[ -f "$server_jar" ]]; then
-                            server_hash=$(hash_file "$server_jar")
-                            if [[ "$built_hash" == "$server_hash" ]]; then
-                                jar_cached=true
-                                matching_server_jar="$server_jar"
-                                break
-                            fi
+                # Select the preferred jar
+                preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                built_hash=$(hash_file "$preferred_jar")
+                jar_cached=false
+                for server_jar in "$OUTPUT_DIR"/*.jar; do
+                    if [[ -f "$server_jar" ]]; then
+                        server_hash=$(hash_file "$server_jar")
+                        if [[ "$built_hash" == "$server_hash" ]]; then
+                            jar_cached=true
+                            break
                         fi
-                    done
-                    if $jar_cached; then
-                        # Jar is cached, no need to rebuild
-                        build_results["$subfolder/$plugin_name"]="cached"
-                        # Copy the built jar to OUTPUT_DIR (overwrite if necessary)
-                        cp "$built_jar" "$OUTPUT_DIR/"
-                        break
                     fi
                 done
-            fi
 
-            if ! $jar_cached; then
-                # Need to build the project
+                if $jar_cached; then
+                    # Jar is cached, no need to rebuild
+                    build_results["$subfolder/$plugin_name"]="cached"
+                else
+                    # Need to build the project
+                    progress_bar "$subfolder" "$plugin_name"
+                    build_command=""
+                    if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
+                        build_command="./gradlew build -q"
+                    elif [[ -f "$dir/pom.xml" ]]; then
+                        build_command="mvn package -q"
+                    else
+                        build_results["$subfolder/$plugin_name"]="Fail"
+                        completed=$((completed + 1))
+                        progress_bar "$subfolder" "$plugin_name"
+                        continue
+                    fi
+
+                    (cd "$dir" && $build_command > /dev/null 2>&1)
+                    if [[ $? -eq 0 ]]; then
+                        # Collect built jars again after building
+                        built_jars=()
+                        for build_output_dir in "${build_output_dirs[@]}"; do
+                            if [[ -d "$build_output_dir" ]]; then
+                                jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
+                                    ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
+                                built_jars+=("${jars_in_dir[@]}")
+                            fi
+                        done
+
+                        if [[ ${#built_jars[@]} -gt 0 ]]; then
+                            # Select the preferred jar
+                            preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                            cp "$preferred_jar" "$OUTPUT_DIR/"
+                            build_results["$subfolder/$plugin_name"]="built"
+                        else
+                            build_results["$subfolder/$plugin_name"]="Fail"
+                        fi
+                    else
+                        build_results["$subfolder/$plugin_name"]="Fail"
+                    fi
+                fi
+
+                # Copy the preferred jar to OUTPUT_DIR (overwrite if necessary)
+                cp "$preferred_jar" "$OUTPUT_DIR/"
+            else
+                # No built jars found, need to build the project
                 progress_bar "$subfolder" "$plugin_name"
                 build_command=""
                 if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
@@ -163,20 +234,20 @@ for prefix in "${build_order[@]}"; do
 
                 (cd "$dir" && $build_command > /dev/null 2>&1)
                 if [[ $? -eq 0 ]]; then
-                    # Collect built jars again after building
+                    # Collect built jars after building
                     built_jars=()
                     for build_output_dir in "${build_output_dirs[@]}"; do
                         if [[ -d "$build_output_dir" ]]; then
-                            jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
+                            jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
+                                ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
                             built_jars+=("${jars_in_dir[@]}")
                         fi
                     done
 
                     if [[ ${#built_jars[@]} -gt 0 ]]; then
-                        # Copy the built jars to OUTPUT_DIR
-                        for built_jar in "${built_jars[@]}"; do
-                            cp "$built_jar" "$OUTPUT_DIR/"
-                        done
+                        # Select the preferred jar
+                        preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                        cp "$preferred_jar" "$OUTPUT_DIR/"
                         build_results["$subfolder/$plugin_name"]="built"
                     else
                         build_results["$subfolder/$plugin_name"]="Fail"
