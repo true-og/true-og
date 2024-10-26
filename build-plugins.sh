@@ -1,25 +1,17 @@
-# This is free and unencumbered software released into the public domain.
-# Author: NotAlexNoyle (admin@true-og.net)
-
 #!/bin/bash
 
-# Update git submodules with a real-time progress display
 echo "Initializing and updating submodules..."
 failed_submodules=()
 git submodule update --force --recursive --init --remote 2>&1 | while read -r line; do
-    # Extract submodule path without "plugins/" prefix
     if [[ "$line" =~ ^Submodule\ path\ \'plugins\/([^\']+)\' ]]; then
         submodule="${BASH_REMATCH[1]}"
         echo -ne "\rUpdating submodule: $submodule                  "
     fi
-
-    # Detect failed submodule update
     if [[ "$line" =~ fatal|error ]]; then
         failed_submodules+=("$submodule")
     fi
 done
 
-# Check if any submodules failed to update
 if [[ ${#failed_submodules[@]} -gt 0 ]]; then
     echo -e "\rSubmodule update completed with errors.            "
     echo "The following submodules failed to update:"
@@ -35,91 +27,67 @@ fi
 declare -A build_results
 halted=false
 
-# Trap Ctrl+C (SIGINT) to stop the script gracefully
 trap 'echo -e "\n\nBuild process interrupted."; halted=true' SIGINT
 
-# Define paths
 BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory inside true-og
 OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder inside true-og
-TEMP_PLUGINS_DIR="$(dirname "$0")/temp_plugins"
 
-# Create directories for the output and temporary storage of up-to-date JARs
-mkdir -p "$OUTPUT_DIR" "$TEMP_PLUGINS_DIR"
+mkdir -p "$OUTPUT_DIR"
 
-# Function to calculate the SHA-256 hash of a file
 hash_file() {
     local file_path="$1"
     sha256sum "$file_path" | awk '{print $1}'
 }
 
-# Move up-to-date JARs to temp_plugins to retain them
-for plugin_jar in "$OUTPUT_DIR"/*.jar; do
-    if [[ -f "$plugin_jar" ]]; then
-        plugin_name=$(basename "$plugin_jar")
-        plugin_found=false
+is_cached() {
+    local built_jar="$1"
+    local built_hash
+    built_hash=$(hash_file "$built_jar")
+    for existing_jar in "$OUTPUT_DIR"/*.jar; do
+        if [[ -f "$existing_jar" && "$built_hash" == "$(hash_file "$existing_jar")" ]]; then
+            return 0  # Cached
+        fi
+    done
+    return 1  # Not cached
+}
 
-        for project_dir in "$BASE_DIR"/*/*/; do
-            jar_path=""
-            if [[ -f "$project_dir/build.gradle" || -f "$project_dir/settings.gradle" || -f "$project_dir/build.gradle.kts" || -f "$project_dir/settings.gradle.kts" ]]; then
-                jar_path="$project_dir/build/libs/$plugin_name"
-            elif [[ -f "$project_dir/pom.xml" ]]; then
-                jar_path="$project_dir/target/$plugin_name"
-            fi
-
-            if [[ -f "$jar_path" && "$(hash_file "$plugin_jar")" == "$(hash_file "$jar_path")" ]]; then
-                mv "$plugin_jar" "$TEMP_PLUGINS_DIR/"
-                plugin_found=true
-                break
-            fi
-        done
-        [[ $plugin_found == false ]] && rm -f "$plugin_jar"
-    fi
-done
-
-# Clear output folder and move retained JARs back to output
-rm -f "$OUTPUT_DIR"/*
-mv "$TEMP_PLUGINS_DIR"/* "$OUTPUT_DIR/" 2>/dev/null || true # Suppress error if temp_plugins is empty
-rmdir "$TEMP_PLUGINS_DIR"
-
-# Count total plugin subdirectories to set up the progress bar
 total_dirs=$(find "$BASE_DIR" -mindepth 2 -maxdepth 2 -type d ! -name '.*' | wc -l)
 completed=0
 
-# List of prefixes for build order (matching exact folder names)
 build_order=("OG-Suite" "Hard-Forks" "Soft-Forks" "Third-Party")
 
-# Function to sort by prefix order
 sort_by_prefix_order() {
     local arr=("$@")
-    printf "%s\n" "${arr[@]}" | sort -t/ -k1,1 --stable -s -f | sort -t/ -k2,2 --stable -s -f
+    local sorted=()
+    for prefix in "${build_order[@]}"; do
+        for item in "${arr[@]}"; do
+            if [[ $item == "$prefix/"* ]]; then
+                sorted+=("$item")
+            fi
+        done
+    done
+    echo "${sorted[@]}"
 }
 
-# Function to display progress bar with current project name, formatted to a fixed width
 progress_bar() {
     local subfolder="$1"
     local project_name="$2"
     local progress=$(( (completed * 100) / total_dirs ))
-    progress=$(( progress > 100 ? 100 : progress )) # Ensure progress does not exceed 100%
-    local bar_length=20 # Fixed bar length
+    progress=$(( progress > 100 ? 100 : progress ))
+    local bar_length=20
     local filled_length=$(( (progress * bar_length) / 100 ))
     local bar=""
-
-    # Fill the bar with '#' and spaces to ensure consistent length
     for ((i = 0; i < filled_length; i++)); do
         bar+="#"
     done
     for ((i = filled_length; i < bar_length; i++)); do
         bar+=" "
     done
-
-    # Display parent folder and project name, ensuring consistent formatting
-    local formatted_subfolder=$(printf "%-10.10s" "$subfolder")
-    local formatted_project_name=$(printf "%-20.20s" "$(basename "$project_name")")
-
+    local formatted_subfolder=$(printf "%-12.12s" "$subfolder")
+    local formatted_project_name=$(printf "%-20.20s" "$project_name")
     printf "\rBuilding %s: %s [%-20s] %3d%%" "$formatted_subfolder" "$formatted_project_name" "$bar" "$progress"
 }
 
-# Build each main directory in the specified order
 for prefix in "${build_order[@]}"; do
     for main_dir in "$BASE_DIR/$prefix"*/; do
         [[ ! -d "$main_dir" || "$main_dir" == "$OUTPUT_DIR/" ]] && continue
@@ -129,62 +97,125 @@ for prefix in "${build_order[@]}"; do
                 break 2
             fi
 
-            subfolder="${prefix}"  # Use prefix as parent folder name
-            project_name="${dir%/}"
+            subfolder="${prefix}"
+            plugin_name="$(basename "$dir")"
 
-            if [[ "${build_results["$subfolder/$project_name"]}" == "Pass (cached)" ]]; then
-                continue
+            # Initialize build status as "Not built"
+            build_status="Not built"
+
+            # Determine the build output directory and expected jar files
+            build_output_dirs=()
+            if [[ -d "$dir/build/libs" ]]; then
+                build_output_dirs+=("$dir/build/libs")
+            elif [[ -d "$dir/target" ]]; then
+                build_output_dirs+=("$dir/target")
             fi
 
-            # Check and build if project is Gradle or Maven
-            if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                progress_bar "$subfolder" "$project_name"
-                (cd "$dir" && ./gradlew build -q > /dev/null 2>&1)  # Suppress all Gradle output
+            # Collect existing built jars
+            built_jars=()
+            for build_output_dir in "${build_output_dirs[@]}"; do
+                if [[ -d "$build_output_dir" ]]; then
+                    jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
+                    built_jars+=("${jars_in_dir[@]}")
+                fi
+            done
+
+            # Check if built jars exist and compare with server directory
+            jar_cached=false
+            if [[ ${#built_jars[@]} -gt 0 ]]; then
+                for built_jar in "${built_jars[@]}"; do
+                    built_hash=$(hash_file "$built_jar")
+                    matching_server_jar=""
+                    for server_jar in "$OUTPUT_DIR"/*.jar; do
+                        if [[ -f "$server_jar" ]]; then
+                            server_hash=$(hash_file "$server_jar")
+                            if [[ "$built_hash" == "$server_hash" ]]; then
+                                jar_cached=true
+                                matching_server_jar="$server_jar"
+                                break
+                            fi
+                        fi
+                    done
+                    if $jar_cached; then
+                        # Jar is cached, no need to rebuild
+                        build_results["$subfolder/$plugin_name"]="cached"
+                        # Copy the built jar to OUTPUT_DIR (overwrite if necessary)
+                        cp "$built_jar" "$OUTPUT_DIR/"
+                        break
+                    fi
+                done
+            fi
+
+            if ! $jar_cached; then
+                # Need to build the project
+                progress_bar "$subfolder" "$plugin_name"
+                build_command=""
+                if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
+                    build_command="./gradlew build -q"
+                elif [[ -f "$dir/pom.xml" ]]; then
+                    build_command="mvn package -q"
+                else
+                    build_results["$subfolder/$plugin_name"]="Fail"
+                    completed=$((completed + 1))
+                    progress_bar "$subfolder" "$plugin_name"
+                    continue
+                fi
+
+                (cd "$dir" && $build_command > /dev/null 2>&1)
                 if [[ $? -eq 0 ]]; then
-                    build_results["$subfolder/$project_name"]="Pass"
-                    if [[ -d "$dir/build/libs" ]]; then
-                        find "$dir/build/libs" -name "*.jar" ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" -exec cp {} "$OUTPUT_DIR/" \; 2>/dev/null
+                    # Collect built jars again after building
+                    built_jars=()
+                    for build_output_dir in "${build_output_dirs[@]}"; do
+                        if [[ -d "$build_output_dir" ]]; then
+                            jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
+                            built_jars+=("${jars_in_dir[@]}")
+                        fi
+                    done
+
+                    if [[ ${#built_jars[@]} -gt 0 ]]; then
+                        # Copy the built jars to OUTPUT_DIR
+                        for built_jar in "${built_jars[@]}"; do
+                            cp "$built_jar" "$OUTPUT_DIR/"
+                        done
+                        build_results["$subfolder/$plugin_name"]="built"
+                    else
+                        build_results["$subfolder/$plugin_name"]="Fail"
                     fi
                 else
-                    build_results["$subfolder/$project_name"]="Fail"
+                    build_results["$subfolder/$plugin_name"]="Fail"
                 fi
-            elif [[ -f "$dir/pom.xml" ]]; then
-                progress_bar "$subfolder" "$project_name"
-                (cd "$dir" && mvn package -q > /dev/null 2>&1)  # Suppress all Maven output
-                if [[ $? -eq 0 ]]; then
-                    build_results["$subfolder/$project_name"]="Pass"
-                    if [[ -d "$dir/target" ]]; then
-                        find "$dir/target" -name "*.jar" ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" -exec cp {} "$OUTPUT_DIR/" \; 2>/dev/null
-                    fi
-                else
-                    build_results["$subfolder/$project_name"]="Fail"
-                fi
-            else
-                build_results["$subfolder/$project_name"]="Fail"
             fi
 
             completed=$((completed + 1))
-            progress_bar "$subfolder" "$project_name"
+            progress_bar "$subfolder" "$plugin_name"
         done
     done
 done
 
-# Separate lists for passed and failed builds
 pass_list=()
+cached_list=()
 fail_list=()
 
 for project in "${!build_results[@]}"; do
-    if [[ "${build_results[$project]}" =~ "Pass" ]]; then
+    status="${build_results[$project]}"
+    if [[ "$status" == "cached" ]]; then
+        cached_list+=("$project")
+    elif [[ "$status" == "built" ]]; then
         pass_list+=("$project")
-    elif [[ "${build_results[$project]}" == "Fail" ]]; then
+    elif [[ "$status" == "Fail" ]]; then
         fail_list+=("$project")
     fi
 done
 
-# Sort and display results
 echo -e "\n\nPlugins built successfully:"
 sorted_pass_list=($(sort_by_prefix_order "${pass_list[@]}"))
 for project in "${sorted_pass_list[@]}"; do
+    echo "$project"
+done
+
+echo -e "\nCached plugins:"
+sorted_cached_list=($(sort_by_prefix_order "${cached_list[@]}"))
+for project in "${sorted_cached_list[@]}"; do
     echo "$project"
 done
 
