@@ -136,9 +136,6 @@ for prefix in "${build_order[@]}"; do
             subfolder="${prefix}"
             plugin_name="$(basename "$dir")"
 
-            # Initialize build status as "Not built"
-            build_status="Not built"
-
             # Determine the build output directory and expected jar files
             build_output_dirs=()
             if [[ -d "$dir/build/libs" ]]; then
@@ -175,6 +172,8 @@ for prefix in "${build_order[@]}"; do
                 if $jar_cached; then
                     # Jar is cached, no need to rebuild
                     build_results["$subfolder/$plugin_name"]="cached"
+                    # Copy the preferred jar to OUTPUT_DIR (overwrite if necessary)
+                    cp "$preferred_jar" "$OUTPUT_DIR/"
                 else
                     # Need to build the project
                     progress_bar "$subfolder" "$plugin_name"
@@ -205,6 +204,7 @@ for prefix in "${build_order[@]}"; do
                         if [[ ${#built_jars[@]} -gt 0 ]]; then
                             # Select the preferred jar
                             preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                            # Copy the preferred jar to OUTPUT_DIR
                             cp "$preferred_jar" "$OUTPUT_DIR/"
                             build_results["$subfolder/$plugin_name"]="built"
                         else
@@ -214,9 +214,6 @@ for prefix in "${build_order[@]}"; do
                         build_results["$subfolder/$plugin_name"]="Fail"
                     fi
                 fi
-
-                # Copy the preferred jar to OUTPUT_DIR (overwrite if necessary)
-                cp "$preferred_jar" "$OUTPUT_DIR/"
             else
                 # No built jars found, need to build the project
                 progress_bar "$subfolder" "$plugin_name"
@@ -247,6 +244,7 @@ for prefix in "${build_order[@]}"; do
                     if [[ ${#built_jars[@]} -gt 0 ]]; then
                         # Select the preferred jar
                         preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                        # Copy the preferred jar to OUTPUT_DIR
                         cp "$preferred_jar" "$OUTPUT_DIR/"
                         build_results["$subfolder/$plugin_name"]="built"
                     else
