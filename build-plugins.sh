@@ -1,26 +1,14 @@
 #!/bin/bash
 
 echo "Initializing and updating submodules..."
-failed_submodules=()
-git submodule update --force --recursive --init --remote 2>&1 | while read -r line; do
-    if [[ "$line" =~ ^Submodule\ path\ \'plugins\/([^\']+)\' ]]; then
-        submodule="${BASH_REMATCH[1]}"
-        echo -ne "\rUpdating submodule: $submodule                  "
-    fi
-    if [[ "$line" =~ fatal|error ]]; then
-        failed_submodules+=("$submodule")
-    fi
-done
+git submodule update --force --recursive --init --remote 2>&1 | tee submodule_update.log
 
-if [[ ${#failed_submodules[@]} -gt 0 ]]; then
-    echo -e "\rSubmodule update completed with errors.            "
-    echo "The following submodules failed to update:"
-    for submodule in "${failed_submodules[@]}"; do
-        echo "- $submodule"
-    done
+# Check for errors in submodule update
+if grep -i -E "fatal|error" submodule_update.log; then
+    echo "Submodule update encountered errors. See 'submodule_update.log' for details."
     exit 1
 else
-    echo -e "\rSubmodules updated successfully.                   "
+    echo "Submodules updated successfully."
 fi
 
 # Array to store results
@@ -37,18 +25,6 @@ mkdir -p "$OUTPUT_DIR"
 hash_file() {
     local file_path="$1"
     sha256sum "$file_path" | awk '{print $1}'
-}
-
-is_cached() {
-    local built_jar="$1"
-    local built_hash
-    built_hash=$(hash_file "$built_jar")
-    for existing_jar in "$OUTPUT_DIR"/*.jar; do
-        if [[ -f "$existing_jar" && "$built_hash" == "$(hash_file "$existing_jar")" ]]; then
-            return 0  # Cached
-        fi
-    done
-    return 1  # Not cached
 }
 
 select_preferred_jar() {
@@ -78,51 +54,7 @@ select_preferred_jar() {
     echo "$preferred_jar"
 }
 
-total_dirs=$(find "$BASE_DIR" -mindepth 2 -maxdepth 2 -type d ! -name '.*' | wc -l)
-completed=0
-
 build_order=("OG-Suite" "Hard-Forks" "Soft-Forks" "Third-Party")
-
-sort_by_prefix_order() {
-    local arr=("$@")
-    local sorted=()
-    for prefix in "${build_order[@]}"; do
-        # Collect items for this prefix
-        local prefix_items=()
-        for item in "${arr[@]}"; do
-            if [[ $item == "$prefix/"* ]]; then
-                prefix_items+=("$item")
-            fi
-        done
-        # Sort the prefix_items alphabetically
-        if [[ ${#prefix_items[@]} -gt 0 ]]; then
-            IFS=$'\n' sorted_prefix_items=($(sort <<<"${prefix_items[*]}"))
-            unset IFS
-            # Add to sorted list
-            sorted+=("${sorted_prefix_items[@]}")
-        fi
-    done
-    echo "${sorted[@]}"
-}
-
-progress_bar() {
-    local subfolder="$1"
-    local project_name="$2"
-    local progress=$(( (completed * 100) / total_dirs ))
-    progress=$(( progress > 100 ? 100 : progress ))
-    local bar_length=20
-    local filled_length=$(( (progress * bar_length) / 100 ))
-    local bar=""
-    for ((i = 0; i < filled_length; i++)); do
-        bar+="#"
-    done
-    for ((i = filled_length; i < bar_length; i++)); do
-        bar+=" "
-    done
-    local formatted_subfolder=$(printf "%-12.12s" "$subfolder")
-    local formatted_project_name=$(printf "%-20.20s" "$project_name")
-    printf "\rBuilding %s: %s [%-20s] %3d%%" "$formatted_subfolder" "$formatted_project_name" "$bar" "$progress"
-}
 
 for prefix in "${build_order[@]}"; do
     for main_dir in "$BASE_DIR/$prefix"*/; do
@@ -136,7 +68,9 @@ for prefix in "${build_order[@]}"; do
             subfolder="${prefix}"
             plugin_name="$(basename "$dir")"
 
-            # Determine the build output directory and expected jar files
+            echo "Processing plugin: $plugin_name in category: $subfolder"
+
+            # Determine the build output directory
             build_output_dirs=()
             if [[ -d "$dir/build/libs" ]]; then
                 build_output_dirs+=("$dir/build/libs")
@@ -144,7 +78,7 @@ for prefix in "${build_order[@]}"; do
                 build_output_dirs+=("$dir/target")
             fi
 
-            # Collect existing built jars
+            # Check for existing built jars
             built_jars=()
             for build_output_dir in "${build_output_dirs[@]}"; do
                 if [[ -d "$build_output_dir" ]]; then
@@ -154,83 +88,45 @@ for prefix in "${build_order[@]}"; do
                 fi
             done
 
+            # Build the project if necessary
+            need_to_build=true
+
             if [[ ${#built_jars[@]} -gt 0 ]]; then
-                # Select the preferred jar
-                preferred_jar=$(select_preferred_jar "${built_jars[@]}")
-                built_hash=$(hash_file "$preferred_jar")
-                jar_cached=false
-                for server_jar in "$OUTPUT_DIR"/*.jar; do
-                    if [[ -f "$server_jar" ]]; then
-                        server_hash=$(hash_file "$server_jar")
-                        if [[ "$built_hash" == "$server_hash" ]]; then
-                            jar_cached=true
-                            break
-                        fi
-                    fi
-                done
+                need_to_build=false
+                echo "Existing JARs found for $plugin_name. Skipping build."
+            fi
 
-                if $jar_cached; then
-                    # Jar is cached, no need to rebuild
-                    build_results["$subfolder/$plugin_name"]="cached"
-                    # Copy the preferred jar to OUTPUT_DIR (overwrite if necessary)
-                    cp "$preferred_jar" "$OUTPUT_DIR/"
-                else
-                    # Need to build the project
-                    progress_bar "$subfolder" "$plugin_name"
-                    build_command=""
-                    if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                        build_command="./gradlew build -q"
-                    elif [[ -f "$dir/pom.xml" ]]; then
-                        build_command="mvn package -q"
-                    else
-                        build_results["$subfolder/$plugin_name"]="Fail"
-                        completed=$((completed + 1))
-                        progress_bar "$subfolder" "$plugin_name"
-                        continue
-                    fi
+            if $need_to_build; then
+                echo "No existing JARs found for $plugin_name. Initiating build process."
 
-                    (cd "$dir" && $build_command > /dev/null 2>&1)
-                    if [[ $? -eq 0 ]]; then
-                        # Collect built jars again after building
-                        built_jars=()
-                        for build_output_dir in "${build_output_dirs[@]}"; do
-                            if [[ -d "$build_output_dir" ]]; then
-                                jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
-                                    ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
-                                built_jars+=("${jars_in_dir[@]}")
-                            fi
-                        done
-
-                        if [[ ${#built_jars[@]} -gt 0 ]]; then
-                            # Select the preferred jar
-                            preferred_jar=$(select_preferred_jar "${built_jars[@]}")
-                            # Copy the preferred jar to OUTPUT_DIR
-                            cp "$preferred_jar" "$OUTPUT_DIR/"
-                            build_results["$subfolder/$plugin_name"]="built"
-                        else
-                            build_results["$subfolder/$plugin_name"]="Fail"
-                        fi
-                    else
-                        build_results["$subfolder/$plugin_name"]="Fail"
-                    fi
+                if [[ -f "$dir/gradlew" ]]; then
+                    chmod +x "$dir/gradlew"
                 fi
-            else
-                # No built jars found, need to build the project
-                progress_bar "$subfolder" "$plugin_name"
-                build_command=""
+
                 if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                    build_command="./gradlew build -q"
+                    build_command="./gradlew build"
                 elif [[ -f "$dir/pom.xml" ]]; then
-                    build_command="mvn package -q"
+                    build_command="mvn package"
                 else
+                    echo "No build configuration found for $plugin_name. Marking as Fail."
                     build_results["$subfolder/$plugin_name"]="Fail"
-                    completed=$((completed + 1))
-                    progress_bar "$subfolder" "$plugin_name"
                     continue
                 fi
 
-                (cd "$dir" && $build_command > /dev/null 2>&1)
-                if [[ $? -eq 0 ]]; then
+                echo "Building $plugin_name using command: $build_command"
+
+                # Run the build command and capture output
+                build_log="$OUTPUT_DIR/${plugin_name}_build.log"
+                (
+                    cd "$dir"
+                    echo "Executing build command in $(pwd)"
+                    $build_command
+                ) > "$build_log" 2>&1
+
+                build_exit_code=$?
+
+                if [[ $build_exit_code -eq 0 ]]; then
+                    echo "Build succeeded for $plugin_name."
                     # Collect built jars after building
                     built_jars=()
                     for build_output_dir in "${build_output_dirs[@]}"; do
@@ -246,20 +142,29 @@ for prefix in "${build_order[@]}"; do
                         preferred_jar=$(select_preferred_jar "${built_jars[@]}")
                         # Copy the preferred jar to OUTPUT_DIR
                         cp "$preferred_jar" "$OUTPUT_DIR/"
+                        echo "Copied built JAR to $OUTPUT_DIR/"
                         build_results["$subfolder/$plugin_name"]="built"
                     else
+                        echo "No JARs found after building $plugin_name. Marking as Fail."
                         build_results["$subfolder/$plugin_name"]="Fail"
                     fi
                 else
+                    echo "Build failed for $plugin_name. See log at $build_log"
                     build_results["$subfolder/$plugin_name"]="Fail"
                 fi
+            else
+                # Copy existing JARs to OUTPUT_DIR
+                preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                cp "$preferred_jar" "$OUTPUT_DIR/"
+                echo "Copied existing JAR to $OUTPUT_DIR/"
+                build_results["$subfolder/$plugin_name"]="cached"
             fi
-
-            completed=$((completed + 1))
-            progress_bar "$subfolder" "$plugin_name"
         done
     done
 done
+
+# Output the build results
+echo -e "\nBuild Summary:"
 
 pass_list=()
 cached_list=()
@@ -276,26 +181,29 @@ for project in "${!build_results[@]}"; do
     fi
 done
 
-echo -e "\n\nPlugins built successfully:"
-sorted_pass_list=($(sort_by_prefix_order "${pass_list[@]}"))
-for project in "${sorted_pass_list[@]}"; do
-    echo "$project"
-done
+if [[ ${#pass_list[@]} -gt 0 ]]; then
+    echo -e "\nPlugins built successfully:"
+    for project in "${pass_list[@]}"; do
+        echo "- $project"
+    done
+fi
 
-echo -e "\nCached plugins:"
-sorted_cached_list=($(sort_by_prefix_order "${cached_list[@]}"))
-for project in "${sorted_cached_list[@]}"; do
-    echo "$project"
-done
+if [[ ${#cached_list[@]} -gt 0 ]]; then
+    echo -e "\nCached plugins (no build needed):"
+    for project in "${cached_list[@]}"; do
+        echo "- $project"
+    done
+fi
 
 if [[ ${#fail_list[@]} -gt 0 ]]; then
     echo -e "\nFailed builds:"
-    sorted_fail_list=($(sort_by_prefix_order "${fail_list[@]}"))
-    for project in "${sorted_fail_list[@]}"; do
-        echo "$project"
+    for project in "${fail_list[@]}"; do
+        echo "- $project"
+        echo "  See log at $OUTPUT_DIR/$(basename "$project")_build.log"
     done
 fi
 
 if $halted; then
     echo -e "\nBuild process was halted by the user."
 fi
+
