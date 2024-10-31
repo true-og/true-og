@@ -1,30 +1,177 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# This is free and unencumbered software released into the public domain.
+# Builds all TrueOG Plugins and puts them into a folder called server/ in the current directory.
 
-echo "Initializing and updating submodules..."
-git submodule update --force --recursive --init --remote 2>&1 | tee submodule_update.log
+# Display ASCII art and wait for user input to start
+cat << "EOF"
 
-# Check for errors in submodule update
-if grep -i -E "fatal|error" submodule_update.log; then
-    echo "Submodule update encountered errors. See 'submodule_update.log' for details."
-    exit 1
-else
-    echo "Submodules updated successfully."
-fi
+♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥
+♥   ___  __        ___  __   __           ___ ___       __   __         ♥
+♥    |  |__) |  | |__  /  \ / _`    |\ | |__   |  |  | /  \ |__) |__/   ♥
+♥    |  |  \ \__/ |___ \__/ \__>    | \| |___  |  |/\| \__/ |  \ |  \   ♥
+♥                                                                       ♥
+♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥
+                            
+	  		  Plugin Bootstrap
+ 			"ad astra per aspera"
+                      
+			Author: NotAlexNoyle
 
-# Array to store results
+EOF
+
+read -p "Press Enter to start..."
+
+# Collect initial commit hashes of submodules from previous run
+declare -A plugin_commit_hash_before
+declare -A plugin_commit_hash_after
 declare -A build_results
 halted=false
 
-trap 'echo -e "\n\nBuild process interrupted."; halted=true' SIGINT
+# Move the commit_hashes.txt file to plugins/logs/
+BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory
+LOG_DIR="$BASE_DIR/logs"  # Directory to store logs
+COMMIT_HASH_FILE="$LOG_DIR/commit_hashes.txt"
 
-BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory inside true-og
-OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder inside true-og
+# Function to handle script interruption
+cleanup() {
+    echo -e "\n\nBuild process interrupted."
+    # Kill all child processes of the script
+    kill 0
+    exit 1
+}
+
+# Trap SIGINT (Ctrl+C) and call cleanup
+trap 'cleanup' SIGINT
+
+# Start a new process group
+set -m
+
+OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder
 
 mkdir -p "$OUTPUT_DIR"
+mkdir -p "$LOG_DIR"
 
-hash_file() {
-    local file_path="$1"
-    sha256sum "$file_path" | awk '{print $1}'
+build_order=("OG-Suite" "Hard-Forks" "Soft-Forks" "Third-Party")
+
+# Function to get commit hash of a plugin directory
+get_plugin_commit_hash() {
+    local dir="$1"
+    if [[ -e "$dir/.git" ]]; then  # Changed -d to -e
+        (cd "$dir" && git rev-parse HEAD 2>/dev/null)
+    else
+        echo ""
+    fi
+}
+
+# Load previous commit hashes from file if it exists
+if [[ -f "$COMMIT_HASH_FILE" ]]; then
+    while IFS= read -r line; do
+        plugin_key="${line%%:*}"
+        commit_hash="${line#*:}"
+        plugin_commit_hash_before["$plugin_key"]="$commit_hash"
+    done < "$COMMIT_HASH_FILE"
+fi
+
+echo
+
+# Updating submodules with progress bar
+submodule_paths=($(git config --file .gitmodules --get-regexp path | awk '{ print $2 }'))
+total_submodules=${#submodule_paths[@]}
+declare -A failed_submodules=()
+
+submodule_progress_bar() {
+    local current=$1
+    local total=$2
+    local submodule_name=$3
+    local progress=$(( (current * 100) / total ))
+    progress=$(( progress > 100 ? 100 : progress ))
+    local bar_length=20
+    local filled_length=$(( (progress * bar_length) / 100 ))
+    local bar=""
+    for ((i = 0; i < filled_length; i++)); do
+        bar+="#"
+    done
+    for ((i = filled_length; i < bar_length; i++)); do
+        bar+=" "
+    done
+    printf "\r\033[KUpdating submodules -> %s [%-20s] %3d%%" "$submodule_name" "$bar" "$progress"
+}
+
+submodule_index=0
+
+for submodule_path in "${submodule_paths[@]}"; do
+    submodule_index=$((submodule_index + 1))
+    submodule_name=$(basename "$submodule_path")
+    submodule_progress_bar "$submodule_index" "$total_submodules" "$submodule_name"
+    # Update the submodule
+    git submodule update --force --recursive --init --remote --quiet "$submodule_path" &> "$LOG_DIR/${submodule_name}_update.log"
+    if [[ $? -ne 0 ]]; then
+        failed_submodules["$submodule_path"]=1
+    fi
+done
+
+# Move to the next line after submodule progress bar
+echo
+
+# Retry failed submodules
+if [[ ${#failed_submodules[@]} -gt 0 ]]; then
+    echo
+    echo "Retrying failed submodules..."
+    for submodule_path in "${!failed_submodules[@]}"; do
+        submodule_name=$(basename "$submodule_path")
+        echo "Retrying $submodule_name..."
+        git submodule update --force --recursive --init --remote --quiet "$submodule_path" &>> "$LOG_DIR/${submodule_name}_update.log"
+        if [[ $? -ne 0 ]]; then
+            absolute_log_path=$(realpath "$LOG_DIR/${submodule_name}_update.log")
+            echo "Failed to update submodule $submodule_name after retry. See log at $absolute_log_path"
+            exit 1
+        else
+            unset failed_submodules["$submodule_path"]
+        fi
+    done
+fi
+
+echo
+echo "Submodules updated successfully."
+
+echo
+
+# Collect commit hashes after updating submodules
+for prefix in "${build_order[@]}"; do
+    for dir in "$BASE_DIR/$prefix"/*/; do
+        [[ ! -d "$dir" ]] && continue
+        plugin_name="$(basename "$dir")"
+        plugin_key="${prefix}/${plugin_name}"
+        commit_hash=$(get_plugin_commit_hash "$dir")
+        plugin_commit_hash_after["$plugin_key"]="$commit_hash"
+    done
+done
+
+# Initialize counters for progress bar
+total_dirs=0
+for prefix in "${build_order[@]}"; do
+    count=$(find "$BASE_DIR/$prefix" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+    total_dirs=$((total_dirs + count))
+done
+completed=0
+
+progress_bar() {
+    local subfolder="$1"
+    local project_name="$2"
+    local progress=$(( (completed * 100) / total_dirs ))
+    progress=$(( progress > 100 ? 100 : progress ))
+    local bar_length=20
+    local filled_length=$(( (progress * bar_length) / 100 ))
+    local bar=""
+    for ((i = 0; i < filled_length; i++)); do
+        bar+="#"
+    done
+    for ((i = filled_length; i < bar_length; i++)); do
+        bar+=" "
+    done
+    local formatted_subfolder=$(printf "%-12.12s" "$subfolder")
+    local formatted_project_name=$(printf "%-20.20s" "$project_name")
+    printf "\r\033[KBuilding %s -> %s [%-20s] %3d%%" "$formatted_subfolder" "$formatted_project_name" "$bar" "$progress"
 }
 
 select_preferred_jar() {
@@ -54,117 +201,187 @@ select_preferred_jar() {
     echo "$preferred_jar"
 }
 
-build_order=("OG-Suite" "Hard-Forks" "Soft-Forks" "Third-Party")
-
-for prefix in "${build_order[@]}"; do
-    for main_dir in "$BASE_DIR/$prefix"*/; do
-        [[ ! -d "$main_dir" || "$main_dir" == "$OUTPUT_DIR/" ]] && continue
-
-        for dir in "$main_dir"*/; do
-            if $halted; then
-                break 2
-            fi
-
-            subfolder="${prefix}"
-            plugin_name="$(basename "$dir")"
-
-            echo "Processing plugin: $plugin_name in category: $subfolder"
-
-            # Determine the build output directory
-            build_output_dirs=()
-            if [[ -d "$dir/build/libs" ]]; then
-                build_output_dirs+=("$dir/build/libs")
-            elif [[ -d "$dir/target" ]]; then
-                build_output_dirs+=("$dir/target")
-            fi
-
-            # Check for existing built jars
-            built_jars=()
-            for build_output_dir in "${build_output_dirs[@]}"; do
-                if [[ -d "$build_output_dir" ]]; then
-                    jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
-                        ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
-                    built_jars+=("${jars_in_dir[@]}")
-                fi
-            done
-
-            # Build the project if necessary
-            need_to_build=true
-
-            if [[ ${#built_jars[@]} -gt 0 ]]; then
-                need_to_build=false
-                echo "Existing JARs found for $plugin_name. Skipping build."
-            fi
-
-            if $need_to_build; then
-                echo "No existing JARs found for $plugin_name. Initiating build process."
-
-                if [[ -f "$dir/gradlew" ]]; then
-                    chmod +x "$dir/gradlew"
-                fi
-
-                if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                    build_command="./gradlew build"
-                elif [[ -f "$dir/pom.xml" ]]; then
-                    build_command="mvn package"
-                else
-                    echo "No build configuration found for $plugin_name. Marking as Fail."
-                    build_results["$subfolder/$plugin_name"]="Fail"
-                    continue
-                fi
-
-                echo "Building $plugin_name using command: $build_command"
-
-                # Run the build command and capture output
-                build_log="$OUTPUT_DIR/${plugin_name}_build.log"
-                (
-                    cd "$dir"
-                    echo "Executing build command in $(pwd)"
-                    $build_command
-                ) > "$build_log" 2>&1
-
-                build_exit_code=$?
-
-                if [[ $build_exit_code -eq 0 ]]; then
-                    echo "Build succeeded for $plugin_name."
-                    # Collect built jars after building
-                    built_jars=()
-                    for build_output_dir in "${build_output_dirs[@]}"; do
-                        if [[ -d "$build_output_dir" ]]; then
-                            jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
-                                ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*"))
-                            built_jars+=("${jars_in_dir[@]}")
-                        fi
-                    done
-
-                    if [[ ${#built_jars[@]} -gt 0 ]]; then
-                        # Select the preferred jar
-                        preferred_jar=$(select_preferred_jar "${built_jars[@]}")
-                        # Copy the preferred jar to OUTPUT_DIR
-                        cp "$preferred_jar" "$OUTPUT_DIR/"
-                        echo "Copied built JAR to $OUTPUT_DIR/"
-                        build_results["$subfolder/$plugin_name"]="built"
-                    else
-                        echo "No JARs found after building $plugin_name. Marking as Fail."
-                        build_results["$subfolder/$plugin_name"]="Fail"
-                    fi
-                else
-                    echo "Build failed for $plugin_name. See log at $build_log"
-                    build_results["$subfolder/$plugin_name"]="Fail"
-                fi
-            else
-                # Copy existing JARs to OUTPUT_DIR
-                preferred_jar=$(select_preferred_jar "${built_jars[@]}")
-                cp "$preferred_jar" "$OUTPUT_DIR/"
-                echo "Copied existing JAR to $OUTPUT_DIR/"
-                build_results["$subfolder/$plugin_name"]="cached"
+# Function to sort projects by category and name
+sort_projects() {
+    local projects=("$@")
+    local sorted_projects=()
+    for category in "${build_order[@]}"; do
+        local category_projects=()
+        for project in "${projects[@]}"; do
+            if [[ "$project" == "$category/"* ]]; then
+                category_projects+=("$project")
             fi
         done
+        IFS=$'\n' sorted_category_projects=($(printf "%s\n" "${category_projects[@]}" | sort))
+        unset IFS
+        sorted_projects+=("${sorted_category_projects[@]}")
+    done
+    echo "${sorted_projects[@]}"
+}
+
+# Prepare to store new commit hashes
+declare -A new_commit_hashes
+
+for prefix in "${build_order[@]}"; do
+    for dir in "$BASE_DIR/$prefix"/*/; do
+        [[ ! -d "$dir" ]] && continue
+        if $halted; then
+            break 2
+        fi
+
+        plugin_name="$(basename "$dir")"
+        plugin_key="${prefix}/${plugin_name}"
+
+        progress_bar "$prefix" "$plugin_name"
+
+        # Get current commit hash
+        commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
+        new_commit_hashes["$plugin_key"]="$commit_hash"
+
+        # Get previous commit hash
+        commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
+
+        # Determine if the plugin needs to be built
+        need_to_build=false
+        if [[ -z "$commit_hash_before" || "$commit_hash_before" != "$commit_hash" ]]; then
+            # Need to build
+            need_to_build=true
+        else
+            # Plugin directory did not change
+            # Check if the jarfile exists in OUTPUT_DIR
+            jar_exists=false
+            for jar_file in "$OUTPUT_DIR"/*.jar; do
+                if [[ -f "$jar_file" ]]; then
+                    jar_basename=$(basename "$jar_file")
+                    if [[ "$jar_basename" == "${plugin_name}"*.jar ]]; then
+                        jar_exists=true
+                        break
+                    fi
+                fi
+            done
+            if $jar_exists; then
+                # No need to rebuild
+                build_results["$plugin_key"]="cached"
+                completed=$((completed + 1))
+                progress_bar "$prefix" "$plugin_name"
+                continue
+            else
+                # JAR does not exist, need to build
+                need_to_build=true
+            fi
+        fi
+
+        # Determine the build output directories
+        build_output_dirs=()
+        if [[ -d "$dir/build/libs" ]]; then
+            build_output_dirs+=("$dir/build/libs")
+        fi
+        if [[ -d "$dir/target" ]]; then
+            build_output_dirs+=("$dir/target")
+        fi
+        if [[ -d "$dir/build/distributions" ]]; then
+            build_output_dirs+=("$dir/build/distributions")
+        fi
+
+        # Check for existing built jars
+        built_jars=()
+        for build_output_dir in "${build_output_dirs[@]}"; do
+            if [[ -d "$build_output_dir" ]]; then
+                jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
+                    ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" 2>/dev/null))
+                built_jars+=("${jars_in_dir[@]}")
+            fi
+        done
+
+        if $need_to_build; then
+            if [[ -f "$dir/gradlew" ]]; then
+                chmod +x "$dir/gradlew" 2>/dev/null
+            fi
+
+            if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
+                build_command="./gradlew build"
+            elif [[ -f "$dir/pom.xml" ]]; then
+                build_command="mvn package"
+            else
+                build_results["$plugin_key"]="Fail"
+                completed=$((completed + 1))
+                progress_bar "$prefix" "$plugin_name"
+                continue
+            fi
+
+            # Run the build command and capture output
+            build_log="$LOG_DIR/${plugin_name}_build.log"
+            (
+                cd "$dir" || exit
+                $build_command
+            ) > "$build_log" 2>&1  # Run in foreground
+
+            build_exit_code=$?
+
+            if [[ $build_exit_code -eq 0 ]]; then
+                # Re-determine the build output directories after build
+                build_output_dirs=()
+                if [[ -d "$dir/build/libs" ]]; then
+                    build_output_dirs+=("$dir/build/libs")
+                fi
+                if [[ -d "$dir/target" ]]; then
+                    build_output_dirs+=("$dir/target")
+                fi
+                if [[ -d "$dir/build/distributions" ]]; then
+                    build_output_dirs+=("$dir/build/distributions")
+                fi
+
+                # Collect built jars after building
+                built_jars=()
+                for build_output_dir in "${build_output_dirs[@]}"; do
+                    if [[ -d "$build_output_dir" ]]; then
+                        jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
+                            ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" 2>/dev/null))
+                        built_jars+=("${jars_in_dir[@]}")
+                    fi
+                done
+
+                if [[ ${#built_jars[@]} -gt 0 ]]; then
+                    # Select the preferred jar
+                    preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                    # Copy the preferred jar to OUTPUT_DIR
+                    cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+                    build_results["$plugin_key"]="built"
+                else
+                    build_results["$plugin_key"]="Fail"
+                fi
+            else
+                build_results["$plugin_key"]="Fail"
+            fi
+        else
+            # Copy existing JARs to OUTPUT_DIR
+            if [[ ${#built_jars[@]} -gt 0 ]]; then
+                preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+                cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+                build_results["$plugin_key"]="cached"
+            else
+                build_results["$plugin_key"]="Fail"
+            fi
+        fi
+
+        completed=$((completed + 1))
+        progress_bar "$prefix" "$plugin_name"
     done
 done
 
+# Move to the next line after the progress bar
+echo
+
+# Save new commit hashes to file, sorted as per build order
+{
+    sorted_keys=($(sort_projects "${!new_commit_hashes[@]}"))
+    for plugin_key in "${sorted_keys[@]}"; do
+        echo "${plugin_key}:${new_commit_hashes[$plugin_key]}"
+    done
+} > "$COMMIT_HASH_FILE"
+
 # Output the build results
-echo -e "\nBuild Summary:"
+echo -e "\nBuild Summary:\n"
 
 pass_list=()
 cached_list=()
@@ -172,38 +389,62 @@ fail_list=()
 
 for project in "${!build_results[@]}"; do
     status="${build_results[$project]}"
-    if [[ "$status" == "cached" ]]; then
-        cached_list+=("$project")
-    elif [[ "$status" == "built" ]]; then
+    if [[ "$status" == "built" ]]; then
         pass_list+=("$project")
     elif [[ "$status" == "Fail" ]]; then
         fail_list+=("$project")
+    elif [[ "$status" == "cached" ]]; then
+        cached_list+=("$project")
     fi
 done
 
 if [[ ${#pass_list[@]} -gt 0 ]]; then
-    echo -e "\nPlugins built successfully:"
-    for project in "${pass_list[@]}"; do
+    echo -e "Plugins built successfully:\n"
+    sorted_pass_list=($(sort_projects "${pass_list[@]}"))
+    for project in "${sorted_pass_list[@]}"; do
         echo "- $project"
     done
 fi
 
+# Moved Cached Plugins above Failed Builds
 if [[ ${#cached_list[@]} -gt 0 ]]; then
-    echo -e "\nCached plugins (no build needed):"
-    for project in "${cached_list[@]}"; do
+    echo
+    echo -e "Cached plugins:\n"
+    sorted_cached_list=($(sort_projects "${cached_list[@]}"))
+    for project in "${sorted_cached_list[@]}"; do
         echo "- $project"
     done
 fi
 
 if [[ ${#fail_list[@]} -gt 0 ]]; then
-    echo -e "\nFailed builds:"
-    for project in "${fail_list[@]}"; do
+    echo
+    echo -e "Failed builds:\n"
+    sorted_fail_list=($(sort_projects "${fail_list[@]}"))
+    for project in "${sorted_fail_list[@]}"; do
         echo "- $project"
-        echo "  See log at $OUTPUT_DIR/$(basename "$project")_build.log"
     done
 fi
 
-if $halted; then
-    echo -e "\nBuild process was halted by the user."
+# If there are any failed builds, print log directory location
+if [[ ${#fail_list[@]} -gt 0 ]]; then
+    echo
+    echo "Build logs for failed plugins are located at: $LOG_DIR"
 fi
 
+# Add a descriptive closing message
+total_built=${#pass_list[@]}
+total_cached=${#cached_list[@]}
+total_failed=${#fail_list[@]}
+total_plugins=$((total_built + total_cached + total_failed))
+
+echo
+echo "Build process completed."
+echo "Total plugins processed: $total_plugins"
+echo "Plugins built successfully: $total_built"
+echo "Plugins cached (no rebuild needed): $total_cached"
+echo "Failed builds: $total_failed"
+
+if $halted; then
+    echo -e "\nBuild process was halted by the user."
+    echo
+fi
