@@ -11,10 +11,10 @@ cat << "EOF"
 ♥    |  |  \ \__/ |___ \__/ \__>    | \| |___  |  |/\| \__/ |  \ |  \   ♥
 ♥                                                                       ♥
 ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥   ♥
-                            
+
 	  		  Plugin Bootstrap
  			"ad astra per aspera"
-                      
+
 			Author: NotAlexNoyle
 
 EOF
@@ -24,6 +24,7 @@ read -p "Press Enter to start..."
 # Collect initial commit hashes of submodules from previous run
 declare -A plugin_commit_hash_before
 declare -A plugin_commit_hash_after
+declare -A new_commit_hashes
 declare -A build_results
 halted=false
 
@@ -56,7 +57,7 @@ build_order=("OG-Suite" "Hard-Forks" "Soft-Forks" "Third-Party")
 # Function to get commit hash of a plugin directory
 get_plugin_commit_hash() {
     local dir="$1"
-    if [[ -e "$dir/.git" ]]; then  # Changed -d to -e
+    if [[ -e "$dir/.git" ]]; then
         (cd "$dir" && git rev-parse HEAD 2>/dev/null)
     else
         echo ""
@@ -65,9 +66,7 @@ get_plugin_commit_hash() {
 
 # Load previous commit hashes from file if it exists
 if [[ -f "$COMMIT_HASH_FILE" ]]; then
-    while IFS= read -r line; do
-        plugin_key="${line%%:*}"
-        commit_hash="${line#*:}"
+    while IFS=: read -r plugin_key commit_hash; do
         plugin_commit_hash_before["$plugin_key"]="$commit_hash"
     done < "$COMMIT_HASH_FILE"
 fi
@@ -142,8 +141,7 @@ for prefix in "${build_order[@]}"; do
         [[ ! -d "$dir" ]] && continue
         plugin_name="$(basename "$dir")"
         plugin_key="${prefix}/${plugin_name}"
-        commit_hash=$(get_plugin_commit_hash "$dir")
-        plugin_commit_hash_after["$plugin_key"]="$commit_hash"
+        plugin_commit_hash_after["$plugin_key"]="$(get_plugin_commit_hash "$dir")"
     done
 done
 
@@ -219,9 +217,6 @@ sort_projects() {
     echo "${sorted_projects[@]}"
 }
 
-# Prepare to store new commit hashes
-declare -A new_commit_hashes
-
 for prefix in "${build_order[@]}"; do
     for dir in "$BASE_DIR/$prefix"/*/; do
         [[ ! -d "$dir" ]] && continue
@@ -231,6 +226,11 @@ for prefix in "${build_order[@]}"; do
 
         plugin_name="$(basename "$dir")"
         plugin_key="${prefix}/${plugin_name}"
+
+        # Exclude specific plugins
+        if [[ "$plugin_key" == "OG-Suite/Template-OG" || "$plugin_key" == "OG-Suite/KotlinTemplate-OG" ]]; then
+            continue
+        fi
 
         progress_bar "$prefix" "$plugin_name"
 
@@ -248,17 +248,12 @@ for prefix in "${build_order[@]}"; do
             need_to_build=true
         else
             # Plugin directory did not change
-            # Check if the jarfile exists in OUTPUT_DIR
+            # Check if any jar matching the plugin exists in OUTPUT_DIR
             jar_exists=false
-            for jar_file in "$OUTPUT_DIR"/*.jar; do
-                if [[ -f "$jar_file" ]]; then
-                    jar_basename=$(basename "$jar_file")
-                    if [[ "$jar_basename" == "${plugin_name}"*.jar ]]; then
-                        jar_exists=true
-                        break
-                    fi
-                fi
-            done
+            matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_name}*.jar"))
+            if [[ ${#matching_jars[@]} -gt 0 ]]; then
+                jar_exists=true
+            fi
             if $jar_exists; then
                 # No need to rebuild
                 build_results["$plugin_key"]="cached"
@@ -283,13 +278,12 @@ for prefix in "${build_order[@]}"; do
             build_output_dirs+=("$dir/build/distributions")
         fi
 
-        # Check for existing built jars
-        built_jars=()
+        # Move existing JARs to old/ before building
         for build_output_dir in "${build_output_dirs[@]}"; do
             if [[ -d "$build_output_dir" ]]; then
-                jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
-                    ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" 2>/dev/null))
-                built_jars+=("${jars_in_dir[@]}")
+                mkdir -p "$build_output_dir/old"
+                find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -path "*/old/*" \
+                    -exec mv {} "$build_output_dir/old/" \;
             fi
         done
 
@@ -344,8 +338,17 @@ for prefix in "${build_order[@]}"; do
                 if [[ ${#built_jars[@]} -gt 0 ]]; then
                     # Select the preferred jar
                     preferred_jar=$(select_preferred_jar "${built_jars[@]}")
-                    # Copy the preferred jar to OUTPUT_DIR
+
+                    # Remove old JARs in OUTPUT_DIR for this plugin
+                    mkdir -p "$OUTPUT_DIR/old"
+                    matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_name}*.jar"))
+                    for old_jar in "${matching_jars[@]}"; do
+                        mv "$old_jar" "$OUTPUT_DIR/old/"
+                    done
+
+                    # Copy the preferred jar to OUTPUT_DIR with its original name
                     cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+
                     build_results["$plugin_key"]="built"
                 else
                     build_results["$plugin_key"]="Fail"
@@ -355,9 +358,28 @@ for prefix in "${build_order[@]}"; do
             fi
         else
             # Copy existing JARs to OUTPUT_DIR
+            built_jars=()
+            for build_output_dir in "${build_output_dirs[@]}"; do
+                if [[ -d "$build_output_dir" ]]; then
+                    jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
+                        ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" 2>/dev/null))
+                    built_jars+=("${jars_in_dir[@]}")
+                fi
+            done
+
             if [[ ${#built_jars[@]} -gt 0 ]]; then
                 preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+
+                # Remove old JARs in OUTPUT_DIR for this plugin
+                mkdir -p "$OUTPUT_DIR/old"
+                matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_name}*.jar"))
+                for old_jar in "${matching_jars[@]}"; do
+                    mv "$old_jar" "$OUTPUT_DIR/old/"
+                done
+
+                # Copy the preferred jar to OUTPUT_DIR with its original name
                 cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+
                 build_results["$plugin_key"]="cached"
             else
                 build_results["$plugin_key"]="Fail"
