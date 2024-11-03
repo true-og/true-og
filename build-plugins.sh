@@ -145,6 +145,12 @@ for prefix in "${build_order[@]}"; do
     done
 done
 
+# Stop all existing Gradle daemons
+echo "Stopping all existing Gradle daemons..."
+if command -v gradle >/dev/null 2>&1; then
+    gradle --stop
+fi
+
 # Initialize counters for progress bar
 total_dirs=0
 for prefix in "${build_order[@]}"; do
@@ -293,9 +299,11 @@ for prefix in "${build_order[@]}"; do
             fi
 
             if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                build_command="./gradlew build"
+                build_command="./gradlew --no-daemon --no-parallel build"
+                use_gradle=true
             elif [[ -f "$dir/pom.xml" ]]; then
                 build_command="mvn package"
+                use_gradle=false
             else
                 build_results["$plugin_key"]="Fail"
                 completed=$((completed + 1))
@@ -307,6 +315,10 @@ for prefix in "${build_order[@]}"; do
             build_log="$LOG_DIR/${plugin_name}_build.log"
             (
                 cd "$dir" || exit
+                if $use_gradle; then
+                    # Set a unique Gradle user home directory
+                    export GRADLE_USER_HOME="$dir/.gradle"
+                fi
                 $build_command
             ) > "$build_log" 2>&1  # Run in foreground
 
