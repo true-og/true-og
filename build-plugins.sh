@@ -238,6 +238,9 @@ for prefix in "${build_order[@]}"; do
             continue
         fi
 
+        # Extract base plugin name by removing '-OG' suffix if present
+        plugin_base_name="${plugin_name%-OG}"
+
         progress_bar "$prefix" "$plugin_name"
 
         # Get current commit hash
@@ -256,7 +259,7 @@ for prefix in "${build_order[@]}"; do
             # Plugin directory did not change
             # Check if any jar matching the plugin exists in OUTPUT_DIR
             jar_exists=false
-            matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_name}*.jar"))
+            matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_base_name}*.jar"))
             if [[ ${#matching_jars[@]} -gt 0 ]]; then
                 jar_exists=true
             fi
@@ -351,18 +354,35 @@ for prefix in "${build_order[@]}"; do
                     # Select the preferred jar
                     preferred_jar=$(select_preferred_jar "${built_jars[@]}")
 
-                    # Remove old JARs in OUTPUT_DIR for this plugin
-                    mkdir -p "$OUTPUT_DIR/old"
-                    matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_name}*.jar"))
-                    for old_jar in "${matching_jars[@]}"; do
-                        mv "$old_jar" "$OUTPUT_DIR/old/"
-                    done
+                    # Get the name of the preferred JAR
+                    preferred_jar_name="$(basename "$preferred_jar")"
 
-                    # Copy the preferred jar to OUTPUT_DIR with its original name
-                    cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+                    # Validate JAR name: it should start with plugin_base_name
+                    if [[ "$preferred_jar_name" == "${plugin_base_name}"* ]]; then
+                        # Proceed to copy and manage the JAR
 
-                    build_results["$plugin_key"]="built"
+                        # Remove old JARs in OUTPUT_DIR for this plugin
+                        mkdir -p "$OUTPUT_DIR/old"
+                        matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_base_name}*.jar"))
+                        for old_jar in "${matching_jars[@]}"; do
+                            old_jar_name="$(basename "$old_jar")"
+                            if [[ "$old_jar_name" != "$preferred_jar_name" ]]; then
+                                mv "$old_jar" "$OUTPUT_DIR/old/"
+                            fi
+                        done
+
+                        # Copy the preferred jar to OUTPUT_DIR with its original name
+                        cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+
+                        build_results["$plugin_key"]="built"
+                    else
+                        echo "Error: JAR file '$preferred_jar_name' does not match expected naming pattern for plugin '$plugin_name'." >> "$build_log"
+                        echo "Build failed due to incorrect JAR naming." >> "$build_log"
+                        build_results["$plugin_key"]="Fail"
+                        continue
+                    fi
                 else
+                    echo "Error: No JAR files found after building plugin '$plugin_name'." >> "$build_log"
                     build_results["$plugin_key"]="Fail"
                 fi
             else
@@ -382,18 +402,32 @@ for prefix in "${build_order[@]}"; do
             if [[ ${#built_jars[@]} -gt 0 ]]; then
                 preferred_jar=$(select_preferred_jar "${built_jars[@]}")
 
-                # Remove old JARs in OUTPUT_DIR for this plugin
-                mkdir -p "$OUTPUT_DIR/old"
-                matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_name}*.jar"))
-                for old_jar in "${matching_jars[@]}"; do
-                    mv "$old_jar" "$OUTPUT_DIR/old/"
-                done
+                # Get the name of the preferred JAR
+                preferred_jar_name="$(basename "$preferred_jar")"
 
-                # Copy the preferred jar to OUTPUT_DIR with its original name
-                cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+                # Validate JAR name: it should start with plugin_base_name
+                if [[ "$preferred_jar_name" == "${plugin_base_name}"* ]]; then
+                    # Remove old JARs in OUTPUT_DIR for this plugin
+                    mkdir -p "$OUTPUT_DIR/old"
+                    matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_base_name}*.jar"))
+                    for old_jar in "${matching_jars[@]}"; do
+                        old_jar_name="$(basename "$old_jar")"
+                        if [[ "$old_jar_name" != "$preferred_jar_name" ]]; then
+                            mv "$old_jar" "$OUTPUT_DIR/old/"
+                        fi
+                    done
 
-                build_results["$plugin_key"]="cached"
+                    # Copy the preferred jar to OUTPUT_DIR with its original name
+                    cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+
+                    build_results["$plugin_key"]="cached"
+                else
+                    echo "Error: JAR file '$preferred_jar_name' does not match expected naming pattern for plugin '$plugin_name'." >> "$build_log"
+                    echo "Build failed due to incorrect JAR naming." >> "$build_log"
+                    build_results["$plugin_key"]="Fail"
+                fi
             else
+                echo "Error: No JAR files found for plugin '$plugin_name'." >> "$build_log"
                 build_results["$plugin_key"]="Fail"
             fi
         fi
