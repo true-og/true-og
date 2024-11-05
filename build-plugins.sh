@@ -36,16 +36,12 @@ COMMIT_HASH_FILE="$LOG_DIR/commit_hashes.txt"
 # Function to handle script interruption
 cleanup() {
     echo -e "\n\nBuild process interrupted."
-    # Kill all child processes of the script
-    kill 0
+    halted=true
     exit 1
 }
 
 # Trap SIGINT (Ctrl+C) and call cleanup
 trap 'cleanup' SIGINT
-
-# Start a new process group
-set -m
 
 OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder
 
@@ -146,7 +142,6 @@ for prefix in "${build_order[@]}"; do
 done
 
 # Stop all existing Gradle daemons
-echo "Stopping all existing Gradle daemons..."
 if command -v gradle >/dev/null 2>&1; then
     gradle --stop
 fi
@@ -323,7 +318,7 @@ for prefix in "${build_order[@]}"; do
                     export GRADLE_USER_HOME="$dir/.gradle"
                 fi
                 $build_command
-            ) > "$build_log" 2>&1  # Run in foreground
+            ) > "$build_log" 2>&1
 
             build_exit_code=$?
 
@@ -449,7 +444,9 @@ echo
 } > "$COMMIT_HASH_FILE"
 
 # Output the build results
-echo -e "\nBuild Summary:\n"
+echo ""
+echo "Build Summary:"
+echo ""
 
 pass_list=()
 cached_list=()
@@ -466,37 +463,37 @@ for project in "${!build_results[@]}"; do
     fi
 done
 
+# Print the plugins that built if any
 if [[ ${#pass_list[@]} -gt 0 ]]; then
-    echo -e "Plugins built successfully:\n"
+    echo "Plugins built successfully:"
+    echo ""
     sorted_pass_list=($(sort_projects "${pass_list[@]}"))
     for project in "${sorted_pass_list[@]}"; do
         echo "- $project"
     done
+    echo ""
 fi
 
-# Moved Cached Plugins above Failed Builds
+# Print cached plugins only if there are any
 if [[ ${#cached_list[@]} -gt 0 ]]; then
-    echo
-    echo -e "Cached plugins:\n"
+    echo "Cached plugins:"
+    echo ""
     sorted_cached_list=($(sort_projects "${cached_list[@]}"))
     for project in "${sorted_cached_list[@]}"; do
         echo "- $project"
     done
+    echo ""
 fi
 
+# Print failed builds only if there are any
 if [[ ${#fail_list[@]} -gt 0 ]]; then
-    echo
-    echo -e "Failed builds:\n"
+    echo "Failed builds:"
+    echo ""
     sorted_fail_list=($(sort_projects "${fail_list[@]}"))
     for project in "${sorted_fail_list[@]}"; do
         echo "- $project"
     done
-fi
-
-# If there are any failed builds, print log directory location
-if [[ ${#fail_list[@]} -gt 0 ]]; then
-    echo
-    echo "Build logs for failed plugins are located at: $LOG_DIR"
+    echo ""
 fi
 
 # Add a descriptive closing message
@@ -505,14 +502,37 @@ total_cached=${#cached_list[@]}
 total_failed=${#fail_list[@]}
 total_plugins=$((total_built + total_cached + total_failed))
 
-echo
-echo "Build process completed."
-echo "Total plugins processed: $total_plugins"
-echo "Plugins built successfully: $total_built"
-echo "Plugins cached (no rebuild needed): $total_cached"
-echo "Failed builds: $total_failed"
+if [[ $total_built -eq 0 ]]; then
+    echo "ERROR: Failed to build all plugins!"
+else
+    echo "Completed plugin jarfiles: $(pwd)/server/"
+fi
+
+echo ""
+echo "Build logs: $(pwd)/plugins/logs/"
+echo ""
+echo "Total plugins: $total_plugins"
+
+# Plugins built
+if [[ $total_built -gt 0 ]]; then
+    echo ""
+	echo "Plugins built: $total_built"
+fi
+
+# Cached plugins
+if [[ $total_cached -gt 0 ]]; then
+    echo ""
+    echo "Cached plugins: $total_cached"
+fi
+
+# Failed builds
+if [[ $total_failed -gt 0 ]]; then
+    echo ""
+    echo "Failed builds: $total_failed"
+fi
 
 if $halted; then
-    echo -e "\nBuild process was halted by the user."
-    echo
+    echo ""
+    echo "WARNING: Build process was halted manually!"
 fi
+
