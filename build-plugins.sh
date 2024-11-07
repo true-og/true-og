@@ -28,9 +28,10 @@ declare -A new_commit_hashes
 declare -A build_results
 halted=false
 
-# Move the commit_hashes.txt file to plugins/logs/
+# Move the commit_hashes.txt file to server/logs/
 BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory
-LOG_DIR="$BASE_DIR/logs"  # Directory to store logs
+OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder
+LOG_DIR="$OUTPUT_DIR/logs"  # Directory to store logs
 COMMIT_HASH_FILE="$LOG_DIR/commit_hashes.txt"
 
 # Function to handle script interruption
@@ -42,8 +43,6 @@ cleanup() {
 
 # Trap SIGINT (Ctrl+C) and call cleanup
 trap 'cleanup' SIGINT
-
-OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder
 
 mkdir -p "$OUTPUT_DIR"
 mkdir -p "$LOG_DIR"
@@ -233,9 +232,6 @@ for prefix in "${build_order[@]}"; do
             continue
         fi
 
-        # Extract base plugin name by removing '-OG' suffix if present
-        plugin_base_name="${plugin_name%-OG}"
-
         progress_bar "$prefix" "$plugin_name"
 
         # Get current commit hash
@@ -246,18 +242,17 @@ for prefix in "${build_order[@]}"; do
         commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
 
         # Determine if the plugin needs to be built
-        need_to_build=false
-        if [[ -z "$commit_hash_before" || "$commit_hash_before" != "$commit_hash" ]]; then
-            # Need to build
-            need_to_build=true
-        else
-            # Plugin directory did not change
-            # Check if any jar matching the plugin exists in OUTPUT_DIR
+        if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" ]]; then
+            # Plugin did not change
+            # But check if the JAR exists in OUTPUT_DIR
             jar_exists=false
-            matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_base_name}*.jar"))
-            if [[ ${#matching_jars[@]} -gt 0 ]]; then
-                jar_exists=true
-            fi
+            matching_jars=("$OUTPUT_DIR/${plugin_name}.jar" "$OUTPUT_DIR/${plugin_name}-"[0-9]*.jar "$OUTPUT_DIR/${plugin_name}."[0-9]*.jar)
+            for jar_file in "${matching_jars[@]}"; do
+                if [[ -f "$jar_file" ]]; then
+                    jar_exists=true
+                    break
+                fi
+            done
             if $jar_exists; then
                 # No need to rebuild
                 build_results["$plugin_key"]="cached"
@@ -268,6 +263,9 @@ for prefix in "${build_order[@]}"; do
                 # JAR does not exist, need to build
                 need_to_build=true
             fi
+        else
+            # Plugin changed or commit hashes are unavailable
+            need_to_build=true
         fi
 
         # Determine the build output directories
@@ -339,9 +337,14 @@ for prefix in "${build_order[@]}"; do
                 built_jars=()
                 for build_output_dir in "${build_output_dirs[@]}"; do
                     if [[ -d "$build_output_dir" ]]; then
-                        jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
-                            ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" 2>/dev/null))
-                        built_jars+=("${jars_in_dir[@]}")
+                        for jar_file in "$build_output_dir/${plugin_name}.jar" "$build_output_dir/${plugin_name}-"[0-9]*.jar "$build_output_dir/${plugin_name}."[0-9]*.jar; do
+                            if [[ -f "$jar_file" ]]; then
+                                jar_name="$(basename "$jar_file")"
+                                if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
+                                    built_jars+=("$jar_file")
+                                fi
+                            fi
+                        done
                     fi
                 done
 
@@ -352,16 +355,14 @@ for prefix in "${build_order[@]}"; do
                     # Get the name of the preferred JAR
                     preferred_jar_name="$(basename "$preferred_jar")"
 
-                    # Validate JAR name: it should start with plugin_base_name
-                    if [[ "$preferred_jar_name" == "${plugin_base_name}"* ]]; then
+                    # Validate JAR name: it should match the expected pattern
+                    if [[ "$preferred_jar_name" == "${plugin_name}.jar" || "$preferred_jar_name" == "${plugin_name}-"[0-9]*.jar || "$preferred_jar_name" == "${plugin_name}."[0-9]*.jar ]]; then
                         # Proceed to copy and manage the JAR
 
                         # Remove old JARs in OUTPUT_DIR for this plugin
                         mkdir -p "$OUTPUT_DIR/old"
-                        matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_base_name}*.jar"))
-                        for old_jar in "${matching_jars[@]}"; do
-                            old_jar_name="$(basename "$old_jar")"
-                            if [[ "$old_jar_name" != "$preferred_jar_name" ]]; then
+                        for old_jar in "$OUTPUT_DIR/${plugin_name}.jar" "$OUTPUT_DIR/${plugin_name}-"[0-9]*.jar "$OUTPUT_DIR/${plugin_name}."[0-9]*.jar; do
+                            if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$preferred_jar_name" ]]; then
                                 mv "$old_jar" "$OUTPUT_DIR/old/"
                             fi
                         done
@@ -388,9 +389,14 @@ for prefix in "${build_order[@]}"; do
             built_jars=()
             for build_output_dir in "${build_output_dirs[@]}"; do
                 if [[ -d "$build_output_dir" ]]; then
-                    jars_in_dir=($(find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" \
-                        ! -name "*javadoc*" ! -name "*sources*" ! -name "*part*" ! -name "original*" 2>/dev/null))
-                    built_jars+=("${jars_in_dir[@]}")
+                    for jar_file in "$build_output_dir/${plugin_name}.jar" "$build_output_dir/${plugin_name}-"[0-9]*.jar "$build_output_dir/${plugin_name}."[0-9]*.jar; do
+                        if [[ -f "$jar_file" ]]; then
+                            jar_name="$(basename "$jar_file")"
+                            if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
+                                built_jars+=("$jar_file")
+                            fi
+                        fi
+                    done
                 fi
             done
 
@@ -400,14 +406,12 @@ for prefix in "${build_order[@]}"; do
                 # Get the name of the preferred JAR
                 preferred_jar_name="$(basename "$preferred_jar")"
 
-                # Validate JAR name: it should start with plugin_base_name
-                if [[ "$preferred_jar_name" == "${plugin_base_name}"* ]]; then
+                # Validate JAR name: it should match the expected pattern
+                if [[ "$preferred_jar_name" == "${plugin_name}.jar" || "$preferred_jar_name" == "${plugin_name}-"[0-9]*.jar || "$preferred_jar_name" == "${plugin_name}."[0-9]*.jar ]]; then
                     # Remove old JARs in OUTPUT_DIR for this plugin
                     mkdir -p "$OUTPUT_DIR/old"
-                    matching_jars=($(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.jar" -iname "*${plugin_base_name}*.jar"))
-                    for old_jar in "${matching_jars[@]}"; do
-                        old_jar_name="$(basename "$old_jar")"
-                        if [[ "$old_jar_name" != "$preferred_jar_name" ]]; then
+                    for old_jar in "$OUTPUT_DIR/${plugin_name}.jar" "$OUTPUT_DIR/${plugin_name}-"[0-9]*.jar "$OUTPUT_DIR/${plugin_name}."[0-9]*.jar; do
+                        if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$preferred_jar_name" ]]; then
                             mv "$old_jar" "$OUTPUT_DIR/old/"
                         fi
                     done
@@ -509,14 +513,14 @@ else
 fi
 
 echo ""
-echo "Build logs: $(pwd)/plugins/logs/"
+echo "Build logs: $(pwd)/server/logs/"
 echo ""
 echo "Total plugins: $total_plugins"
 
 # Plugins built
 if [[ $total_built -gt 0 ]]; then
     echo ""
-	echo "Plugins built: $total_built"
+    echo "Plugins built: $total_built"
 fi
 
 # Cached plugins
