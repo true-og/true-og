@@ -234,6 +234,207 @@ for prefix in "${build_order[@]}"; do
 
         progress_bar "$prefix" "$plugin_name"
 
+        # Special case for Soft-Forks/Essentials-OG
+        if [[ "$plugin_key" == "Soft-Forks/Essentials-OG" ]]; then
+            # Special handling for Essentials-OG
+            need_to_build=false
+
+            # Get current commit hash
+            commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
+            new_commit_hashes["$plugin_key"]="$commit_hash"
+
+            # Get previous commit hash
+            commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
+
+            # Check if both jars exist in OUTPUT_DIR
+            jars_exist=true
+            for sub_plugin in "EssentialsX" "EssentialsXSpawn"; do
+                jar_exists=false
+                matching_jars=("$OUTPUT_DIR/${sub_plugin}.jar" "$OUTPUT_DIR/${sub_plugin}-"[0-9]*.jar "$OUTPUT_DIR/${sub_plugin}."[0-9]*.jar)
+                for jar_file in "${matching_jars[@]}"; do
+                    if [[ -f "$jar_file" ]]; then
+                        jar_exists=true
+                        break
+                    fi
+                done
+                if ! $jar_exists; then
+                    jars_exist=false
+                    break
+                fi
+            done
+
+            if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" && $jars_exist == true ]]; then
+                # No need to rebuild
+                build_results["Soft-Forks/EssentialsX"]="cached"
+                build_results["Soft-Forks/EssentialsXSpawn"]="cached"
+                completed=$((completed + 1))
+                progress_bar "$prefix" "$plugin_name"
+                continue
+            else
+                need_to_build=true
+            fi
+
+            # Determine the build output directories
+            build_output_dirs=()
+            if [[ -d "$dir/build/libs" ]]; then
+                build_output_dirs+=("$dir/build/libs")
+            fi
+            if [[ -d "$dir/target" ]]; then
+                build_output_dirs+=("$dir/target")
+            fi
+            if [[ -d "$dir/build/distributions" ]]; then
+                build_output_dirs+=("$dir/build/distributions")
+            fi
+
+            # Move existing JARs to old/ before building
+            for build_output_dir in "${build_output_dirs[@]}"; do
+                if [[ -d "$build_output_dir" ]]; then
+                    mkdir -p "$build_output_dir/old"
+                    find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -path "*/old/*" \
+                        -exec mv {} "$build_output_dir/old/" \;
+                fi
+            done
+
+            if $need_to_build; then
+                if [[ -f "$dir/gradlew" ]]; then
+                    chmod +x "$dir/gradlew" 2>/dev/null
+                fi
+
+                if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
+                    build_command="./gradlew --no-daemon --no-parallel build"
+                    use_gradle=true
+                elif [[ -f "$dir/pom.xml" ]]; then
+                    build_command="mvn package"
+                    use_gradle=false
+                else
+                    build_results["Soft-Forks/EssentialsX"]="Fail"
+                    build_results["Soft-Forks/EssentialsXSpawn"]="Fail"
+                    completed=$((completed + 1))
+                    progress_bar "$prefix" "$plugin_name"
+                    continue
+                fi
+
+                # Run the build command and capture output
+                build_log="$LOG_DIR/${plugin_name}_build.log"
+                (
+                    cd "$dir" || exit
+                    if $use_gradle; then
+                        # Set a unique Gradle user home directory
+                        export GRADLE_USER_HOME="$dir/.gradle"
+                    fi
+                    $build_command
+                ) > "$build_log" 2>&1
+
+                build_exit_code=$?
+
+                if [[ $build_exit_code -eq 0 ]]; then
+                    # Re-determine the build output directories after build
+                    build_output_dirs=()
+                    if [[ -d "$dir/build/libs" ]]; then
+                        build_output_dirs+=("$dir/build/libs")
+                    fi
+                    if [[ -d "$dir/target" ]]; then
+                        build_output_dirs+=("$dir/target")
+                    fi
+                    if [[ -d "$dir/build/distributions" ]]; then
+                        build_output_dirs+=("$dir/build/distributions")
+                    fi
+
+                    # Collect built jars after building
+                    built_jars=()
+                    for build_output_dir in "${build_output_dirs[@]}"; do
+                        if [[ -d "$build_output_dir" ]]; then
+                            for jar_file in "$build_output_dir/"*.jar; do
+                                if [[ -f "$jar_file" ]]; then
+                                    jar_name="$(basename "$jar_file")"
+                                    if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
+                                        built_jars+=("$jar_file")
+                                    fi
+                                fi
+                            done
+                        fi
+                    done
+
+                    # Process each built jar
+                    for jar_file in "${built_jars[@]}"; do
+                        jar_name="$(basename "$jar_file")"
+                        if [[ "$jar_name" == *"EssentialsXSpawn"* ]]; then
+                            sub_plugin="EssentialsXSpawn"
+                        elif [[ "$jar_name" == *"Essentials"* ]]; then
+                            sub_plugin="EssentialsX"
+                        else
+                            continue
+                        fi
+
+                        # Remove old jars in OUTPUT_DIR for this sub_plugin
+                        mkdir -p "$OUTPUT_DIR/old"
+                        for old_jar in "$OUTPUT_DIR/${sub_plugin}.jar" "$OUTPUT_DIR/${sub_plugin}-"[0-9]*.jar "$OUTPUT_DIR/${sub_plugin}."[0-9]*.jar; do
+                            if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$jar_name" ]]; then
+                                mv "$old_jar" "$OUTPUT_DIR/old/"
+                            fi
+                        done
+
+                        # Copy the jar to OUTPUT_DIR
+                        cp "$jar_file" "$OUTPUT_DIR/" 2>/dev/null
+
+                        # Update build_results
+                        build_results["Soft-Forks/${sub_plugin}"]="built"
+                    done
+                else
+                    build_results["Soft-Forks/EssentialsX"]="Fail"
+                    build_results["Soft-Forks/EssentialsXSpawn"]="Fail"
+                fi
+            else
+                # Copy existing jars
+                built_jars=()
+                for build_output_dir in "${build_output_dirs[@]}"; do
+                    if [[ -d "$build_output_dir" ]]; then
+                        for jar_file in "$build_output_dir/"*.jar; do
+                            if [[ -f "$jar_file" ]]; then
+                                jar_name="$(basename "$jar_file")"
+                                if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
+                                    built_jars+=("$jar_file")
+                                fi
+                            fi
+                        done
+                    fi
+                done
+
+                # Process each built jar
+                for jar_file in "${built_jars[@]}"; do
+                    jar_name="$(basename "$jar_file")"
+                    if [[ "$jar_name" == *"EssentialsXSpawn"* ]]; then
+                        sub_plugin="EssentialsXSpawn"
+                    elif [[ "$jar_name" == *"Essentials"* ]]; then
+                        sub_plugin="EssentialsX"
+                    else
+                        continue
+                    fi
+
+                    # Remove old jars in OUTPUT_DIR for this sub_plugin
+                    mkdir -p "$OUTPUT_DIR/old"
+                    for old_jar in "$OUTPUT_DIR/${sub_plugin}.jar" "$OUTPUT_DIR/${sub_plugin}-"[0-9]*.jar "$OUTPUT_DIR/${sub_plugin}."[0-9]*.jar; do
+                        if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$jar_name" ]]; then
+                            mv "$old_jar" "$OUTPUT_DIR/old/"
+                        fi
+                    done
+
+                    # Copy the jar to OUTPUT_DIR
+                    cp "$jar_file" "$OUTPUT_DIR/" 2>/dev/null
+
+                    # Update build_results
+                    build_results["Soft-Forks/${sub_plugin}"]="cached"
+                done
+            fi
+
+            completed=$((completed + 1))
+            progress_bar "$prefix" "$plugin_name"
+
+            continue
+        fi
+
+        # Normal handling for other plugins
+
         # Get current commit hash
         commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
         new_commit_hashes["$plugin_key"]="$commit_hash"
@@ -242,6 +443,7 @@ for prefix in "${build_order[@]}"; do
         commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
 
         # Determine if the plugin needs to be built
+        need_to_build=false
         if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" ]]; then
             # Plugin did not change
             # But check if the JAR exists in OUTPUT_DIR
@@ -539,4 +741,3 @@ if $halted; then
     echo ""
     echo "WARNING: Build process was halted manually!"
 fi
-
