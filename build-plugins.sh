@@ -21,27 +21,31 @@ EOF
 
 read -p "Press Enter to start..."
 
-# Collect initial commit hashes of submodules from previous run
+# Enable nullglob and extglob to handle non-matching patterns and extended globbing.
+shopt -s nullglob extglob
+
+# Collect initial commit hashes of submodules from previous run.
 declare -A plugin_commit_hash_before
 declare -A plugin_commit_hash_after
 declare -A new_commit_hashes
 declare -A build_results
+declare -A plugin_dirs
 halted=false
 
-# Move the commit_hashes.txt file to server/logs/
-BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory
-OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder
-LOG_DIR="$OUTPUT_DIR/logs"  # Directory to store logs
+# Move the commit_hashes.txt file to server/logs/.
+BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory.
+OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder.
+LOG_DIR="$OUTPUT_DIR/logs"  # Directory to store logs.
 COMMIT_HASH_FILE="$LOG_DIR/commit_hashes.txt"
 
-# Function to handle script interruption
+# Function to handle script interruption.
 cleanup() {
     echo -e "\n\nBuild process interrupted."
     halted=true
     exit 1
 }
 
-# Trap SIGINT (Ctrl+C) and call cleanup
+# Trap SIGINT (Ctrl+C) and call cleanup.
 trap 'cleanup' SIGINT
 
 mkdir -p "$OUTPUT_DIR"
@@ -49,7 +53,7 @@ mkdir -p "$LOG_DIR"
 
 build_order=("OG-Suite" "Hard-Forks" "Soft-Forks" "Third-Party")
 
-# Function to get commit hash of a plugin directory
+# Function to get commit hash of a plugin directory.
 get_plugin_commit_hash() {
     local dir="$1"
     if [[ -e "$dir/.git" ]]; then
@@ -59,7 +63,7 @@ get_plugin_commit_hash() {
     fi
 }
 
-# Load previous commit hashes from file if it exists
+# Load previous commit hashes from file if it exists.
 if [[ -f "$COMMIT_HASH_FILE" ]]; then
     while IFS=: read -r plugin_key commit_hash; do
         plugin_commit_hash_before["$plugin_key"]="$commit_hash"
@@ -68,7 +72,7 @@ fi
 
 echo
 
-# Updating submodules with progress bar
+# Updating submodules with progress bar.
 submodule_paths=($(git config --file .gitmodules --get-regexp path | awk '{ print $2 }'))
 total_submodules=${#submodule_paths[@]}
 declare -A failed_submodules=()
@@ -97,24 +101,24 @@ for submodule_path in "${submodule_paths[@]}"; do
     submodule_index=$((submodule_index + 1))
     submodule_name=$(basename "$submodule_path")
     submodule_progress_bar "$submodule_index" "$total_submodules" "$submodule_name"
-    # Update the submodule
-    git submodule update --force --recursive --init --remote --quiet "$submodule_path" &> "$LOG_DIR/${submodule_name}_update.log"
+    # Update the submodule without the --remote flag.
+    git submodule update --force --recursive --init --quiet "$submodule_path" &> "$LOG_DIR/${submodule_name}_update.log"
     if [[ $? -ne 0 ]]; then
         failed_submodules["$submodule_path"]=1
     fi
 done
 
-# Move to the next line after submodule progress bar
+# Move to the next line after submodule progress bar.
 echo
 
-# Retry failed submodules
+# Retry failed submodules.
 if [[ ${#failed_submodules[@]} -gt 0 ]]; then
     echo
     echo "Retrying failed submodules..."
     for submodule_path in "${!failed_submodules[@]}"; do
         submodule_name=$(basename "$submodule_path")
         echo "Retrying $submodule_name..."
-        git submodule update --force --recursive --init --remote --quiet "$submodule_path" &>> "$LOG_DIR/${submodule_name}_update.log"
+        git submodule update --force --recursive --init --quiet "$submodule_path" &>> "$LOG_DIR/${submodule_name}_update.log"
         if [[ $? -ne 0 ]]; then
             absolute_log_path=$(realpath "$LOG_DIR/${submodule_name}_update.log")
             echo "Failed to update submodule $submodule_name after retry. See log at $absolute_log_path"
@@ -130,27 +134,48 @@ echo "Submodules updated successfully."
 
 echo
 
-# Collect commit hashes after updating submodules
+# Build list of plugin keys and collect commit hashes.
+declare -a plugin_keys
+
 for prefix in "${build_order[@]}"; do
     for dir in "$BASE_DIR/$prefix"/*/; do
         [[ ! -d "$dir" ]] && continue
         plugin_name="$(basename "$dir")"
         plugin_key="${prefix}/${plugin_name}"
-        plugin_commit_hash_after["$plugin_key"]="$(get_plugin_commit_hash "$dir")"
+
+        # Exclude specific plugins.
+        if [[ "$plugin_key" == "OG-Suite/Template-OG" || "$plugin_key" == "OG-Suite/KotlinTemplate-OG" ]]; then
+            continue
+        fi
+
+        if [[ "$plugin_key" == "Soft-Forks/Essentials-OG" ]]; then
+            # Add both pseudo-plugins.
+            plugin_keys+=("Soft-Forks/EssentialsX")
+            plugin_keys+=("Soft-Forks/EssentialsXSpawn")
+            # Set commit hash under Essentials-OG.
+            commit_hash="$(get_plugin_commit_hash "$dir")"
+            plugin_commit_hash_after["Soft-Forks/Essentials-OG"]="$commit_hash"
+            new_commit_hashes["Soft-Forks/Essentials-OG"]="$commit_hash"
+            # Map directories.
+            plugin_dirs["Soft-Forks/EssentialsX"]="$dir"
+            plugin_dirs["Soft-Forks/EssentialsXSpawn"]="$dir"
+        else
+            plugin_keys+=("$plugin_key")
+            commit_hash="$(get_plugin_commit_hash "$dir")"
+            plugin_commit_hash_after["$plugin_key"]="$commit_hash"
+            new_commit_hashes["$plugin_key"]="$commit_hash"
+            plugin_dirs["$plugin_key"]="$dir"
+        fi
     done
 done
 
-# Stop all existing Gradle daemons
+# Stop all existing Gradle daemons.
 if command -v gradle >/dev/null 2>&1; then
-    gradle --stop
+    gradle --stop >/dev/null 2>&1
 fi
 
-# Initialize counters for progress bar
-total_dirs=0
-for prefix in "${build_order[@]}"; do
-    count=$(find "$BASE_DIR/$prefix" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
-    total_dirs=$((total_dirs + count))
-done
+# Initialize counters for progress bar.
+total_dirs=${#plugin_keys[@]}
 completed=0
 
 progress_bar() {
@@ -174,7 +199,7 @@ progress_bar() {
 
 select_preferred_jar() {
     local jars=("$@")
-    # Prefer jars without "-all" in their name
+    # Prefer jars without "-all" in their name.
     local preferred_jars=()
     for jar in "${jars[@]}"; do
         basename=$(basename "$jar")
@@ -183,10 +208,10 @@ select_preferred_jar() {
         fi
     done
     if [[ ${#preferred_jars[@]} -eq 0 ]]; then
-        # No jars without "-all.jar", use the original list
+        # No jars without "-all.jar", use the original list.
         preferred_jars=("${jars[@]}")
     fi
-    # Select the jar with the shortest name (excluding path)
+    # Select the jar with the shortest name (excluding path).
     preferred_jar="${preferred_jars[0]}"
     shortest_name_length=${#preferred_jar}
     for jar in "${preferred_jars[@]}"; do
@@ -199,7 +224,7 @@ select_preferred_jar() {
     echo "$preferred_jar"
 }
 
-# Function to sort projects by category and name
+# Function to sort projects by category and name.
 sort_projects() {
     local projects=("$@")
     local sorted_projects=()
@@ -217,260 +242,74 @@ sort_projects() {
     echo "${sorted_projects[@]}"
 }
 
-for prefix in "${build_order[@]}"; do
-    for dir in "$BASE_DIR/$prefix"/*/; do
-        [[ ! -d "$dir" ]] && continue
-        if $halted; then
-            break 2
+for plugin_key in "${plugin_keys[@]}"; do
+    if $halted; then
+        break
+    fi
+
+    prefix="${plugin_key%%/*}"
+    plugin_name="${plugin_key##*/}"
+    dir="${plugin_dirs[$plugin_key]}"
+
+    progress_bar "$prefix" "$plugin_name"
+
+    # For pseudo plugins, use the commit hash of Essentials-OG.
+    if [[ "$plugin_key" == "Soft-Forks/EssentialsX" || "$plugin_key" == "Soft-Forks/EssentialsXSpawn" ]]; then
+        commit_hash="${plugin_commit_hash_after["Soft-Forks/Essentials-OG"]}"
+        commit_hash_before="${plugin_commit_hash_before["Soft-Forks/Essentials-OG"]}"
+    else
+        # Get current commit hash.
+        commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
+        commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
+    fi
+
+    need_to_build=false
+    if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" ]]; then
+        # Plugin did not change.
+        # But check if the JAR exists in OUTPUT_DIR.
+        jar_exists=false
+
+        # Determine the possible jar names.
+        if [[ "$plugin_key" == "Soft-Forks/EssentialsX" ]]; then
+            plugin_names=("Essentials-OG" "EssentialsX-OG")
+        elif [[ "$plugin_key" == "Soft-Forks/EssentialsXSpawn" ]]; then
+            plugin_names=("EssentialsXSpawn-OG")
+        elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-AFKPlus" ]]; then
+            plugin_names=("MiniPlaceholders-AFKPlus")
+        elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Essentials" ]]; then
+            plugin_names=("MiniPlaceholders-Essentials")
+        elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Statistic" ]]; then
+            plugin_names=("MiniPlaceholders-Statistic")
+        else
+            plugin_names=("$plugin_name")
         fi
 
-        plugin_name="$(basename "$dir")"
-        plugin_key="${prefix}/${plugin_name}"
-
-        # Exclude specific plugins
-        if [[ "$plugin_key" == "OG-Suite/Template-OG" || "$plugin_key" == "OG-Suite/KotlinTemplate-OG" ]]; then
-            continue
-        fi
-
-        progress_bar "$prefix" "$plugin_name"
-
-        # Special case for Soft-Forks/Essentials-OG
-        if [[ "$plugin_key" == "Soft-Forks/Essentials-OG" ]]; then
-            # Special handling for Essentials-OG
-            need_to_build=false
-
-            # Get current commit hash
-            commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
-            new_commit_hashes["$plugin_key"]="$commit_hash"
-
-            # Get previous commit hash
-            commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
-
-            # Check if both jars exist in OUTPUT_DIR
-            jars_exist=true
-            for sub_plugin in "EssentialsX" "EssentialsXSpawn"; do
-                jar_exists=false
-                matching_jars=("$OUTPUT_DIR/${sub_plugin}.jar" "$OUTPUT_DIR/${sub_plugin}-"[0-9]*.jar "$OUTPUT_DIR/${sub_plugin}."[0-9]*.jar)
-                for jar_file in "${matching_jars[@]}"; do
-                    if [[ -f "$jar_file" ]]; then
-                        jar_exists=true
-                        break
-                    fi
-                done
-                if ! $jar_exists; then
-                    jars_exist=false
-                    break
+        for jar_file in "$OUTPUT_DIR"/*.jar; do
+            base_name=$(basename "$jar_file" .jar)
+            for name in "${plugin_names[@]}"; do
+                remaining="${base_name#$name}"
+                if [[ "$remaining" == "" || "$remaining" =~ ^[-\.][0-9] ]]; then
+                    jar_exists=true
+                    break 2  # Break out of both loops.
                 fi
             done
+        done
 
-            if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" && $jars_exist == true ]]; then
-                # No need to rebuild
-                build_results["Soft-Forks/EssentialsX"]="cached"
-                build_results["Soft-Forks/EssentialsXSpawn"]="cached"
-                completed=$((completed + 1))
-                progress_bar "$prefix" "$plugin_name"
-                continue
-            else
-                need_to_build=true
-            fi
-
-            # Determine the build output directories
-            build_output_dirs=()
-            if [[ -d "$dir/build/libs" ]]; then
-                build_output_dirs+=("$dir/build/libs")
-            fi
-            if [[ -d "$dir/target" ]]; then
-                build_output_dirs+=("$dir/target")
-            fi
-            if [[ -d "$dir/build/distributions" ]]; then
-                build_output_dirs+=("$dir/build/distributions")
-            fi
-
-            # Move existing JARs to old/ before building
-            for build_output_dir in "${build_output_dirs[@]}"; do
-                if [[ -d "$build_output_dir" ]]; then
-                    mkdir -p "$build_output_dir/old"
-                    find "$build_output_dir" -maxdepth 1 -type f -name "*.jar" ! -path "*/old/*" \
-                        -exec mv {} "$build_output_dir/old/" \;
-                fi
-            done
-
-            if $need_to_build; then
-                if [[ -f "$dir/gradlew" ]]; then
-                    chmod +x "$dir/gradlew" 2>/dev/null
-                fi
-
-                if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                    build_command="./gradlew --no-daemon --no-parallel build"
-                    use_gradle=true
-                elif [[ -f "$dir/pom.xml" ]]; then
-                    build_command="mvn package"
-                    use_gradle=false
-                else
-                    build_results["Soft-Forks/EssentialsX"]="Fail"
-                    build_results["Soft-Forks/EssentialsXSpawn"]="Fail"
-                    completed=$((completed + 1))
-                    progress_bar "$prefix" "$plugin_name"
-                    continue
-                fi
-
-                # Run the build command and capture output
-                build_log="$LOG_DIR/${plugin_name}_build.log"
-                (
-                    cd "$dir" || exit
-                    if $use_gradle; then
-                        # Set a unique Gradle user home directory
-                        export GRADLE_USER_HOME="$dir/.gradle"
-                    fi
-                    $build_command
-                ) > "$build_log" 2>&1
-
-                build_exit_code=$?
-
-                if [[ $build_exit_code -eq 0 ]]; then
-                    # Re-determine the build output directories after build
-                    build_output_dirs=()
-                    if [[ -d "$dir/build/libs" ]]; then
-                        build_output_dirs+=("$dir/build/libs")
-                    fi
-                    if [[ -d "$dir/target" ]]; then
-                        build_output_dirs+=("$dir/target")
-                    fi
-                    if [[ -d "$dir/build/distributions" ]]; then
-                        build_output_dirs+=("$dir/build/distributions")
-                    fi
-
-                    # Collect built jars after building
-                    built_jars=()
-                    for build_output_dir in "${build_output_dirs[@]}"; do
-                        if [[ -d "$build_output_dir" ]]; then
-                            for jar_file in "$build_output_dir/"*.jar; do
-                                if [[ -f "$jar_file" ]]; then
-                                    jar_name="$(basename "$jar_file")"
-                                    if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
-                                        built_jars+=("$jar_file")
-                                    fi
-                                fi
-                            done
-                        fi
-                    done
-
-                    # Process each built jar
-                    for jar_file in "${built_jars[@]}"; do
-                        jar_name="$(basename "$jar_file")"
-                        if [[ "$jar_name" == *"EssentialsXSpawn"* ]]; then
-                            sub_plugin="EssentialsXSpawn"
-                        elif [[ "$jar_name" == *"Essentials"* ]]; then
-                            sub_plugin="EssentialsX"
-                        else
-                            continue
-                        fi
-
-                        # Remove old jars in OUTPUT_DIR for this sub_plugin
-                        mkdir -p "$OUTPUT_DIR/old"
-                        for old_jar in "$OUTPUT_DIR/${sub_plugin}.jar" "$OUTPUT_DIR/${sub_plugin}-"[0-9]*.jar "$OUTPUT_DIR/${sub_plugin}."[0-9]*.jar; do
-                            if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$jar_name" ]]; then
-                                mv "$old_jar" "$OUTPUT_DIR/old/"
-                            fi
-                        done
-
-                        # Copy the jar to OUTPUT_DIR
-                        cp "$jar_file" "$OUTPUT_DIR/" 2>/dev/null
-
-                        # Update build_results
-                        build_results["Soft-Forks/${sub_plugin}"]="built"
-                    done
-                else
-                    build_results["Soft-Forks/EssentialsX"]="Fail"
-                    build_results["Soft-Forks/EssentialsXSpawn"]="Fail"
-                fi
-            else
-                # Copy existing jars
-                built_jars=()
-                for build_output_dir in "${build_output_dirs[@]}"; do
-                    if [[ -d "$build_output_dir" ]]; then
-                        for jar_file in "$build_output_dir/"*.jar; do
-                            if [[ -f "$jar_file" ]]; then
-                                jar_name="$(basename "$jar_file")"
-                                if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
-                                    built_jars+=("$jar_file")
-                                fi
-                            fi
-                        done
-                    fi
-                done
-
-                # Process each built jar
-                for jar_file in "${built_jars[@]}"; do
-                    jar_name="$(basename "$jar_file")"
-                    if [[ "$jar_name" == *"EssentialsXSpawn"* ]]; then
-                        sub_plugin="EssentialsXSpawn"
-                    elif [[ "$jar_name" == *"Essentials"* ]]; then
-                        sub_plugin="EssentialsX"
-                    else
-                        continue
-                    fi
-
-                    # Remove old jars in OUTPUT_DIR for this sub_plugin
-                    mkdir -p "$OUTPUT_DIR/old"
-                    for old_jar in "$OUTPUT_DIR/${sub_plugin}.jar" "$OUTPUT_DIR/${sub_plugin}-"[0-9]*.jar "$OUTPUT_DIR/${sub_plugin}."[0-9]*.jar; do
-                        if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$jar_name" ]]; then
-                            mv "$old_jar" "$OUTPUT_DIR/old/"
-                        fi
-                    done
-
-                    # Copy the jar to OUTPUT_DIR
-                    cp "$jar_file" "$OUTPUT_DIR/" 2>/dev/null
-
-                    # Update build_results
-                    build_results["Soft-Forks/${sub_plugin}"]="cached"
-                done
-            fi
-
+        if $jar_exists; then
+            # No need to rebuild.
+            build_results["$plugin_key"]="cached"
             completed=$((completed + 1))
             progress_bar "$prefix" "$plugin_name"
-
             continue
-        fi
-
-        # Normal handling for other plugins
-
-        # Get current commit hash
-        commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
-        new_commit_hashes["$plugin_key"]="$commit_hash"
-
-        # Get previous commit hash
-        commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
-
-        # Determine if the plugin needs to be built
-        need_to_build=false
-        if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" ]]; then
-            # Plugin did not change
-            # But check if the JAR exists in OUTPUT_DIR
-            jar_exists=false
-            matching_jars=("$OUTPUT_DIR/${plugin_name}.jar" "$OUTPUT_DIR/${plugin_name}-"[0-9]*.jar "$OUTPUT_DIR/${plugin_name}."[0-9]*.jar)
-            for jar_file in "${matching_jars[@]}"; do
-                if [[ -f "$jar_file" ]]; then
-                    jar_exists=true
-                    break
-                fi
-            done
-            if $jar_exists; then
-                # No need to rebuild
-                build_results["$plugin_key"]="cached"
-                completed=$((completed + 1))
-                progress_bar "$prefix" "$plugin_name"
-                continue
-            else
-                # JAR does not exist, need to build
-                need_to_build=true
-            fi
         else
-            # Plugin changed or commit hashes are unavailable
             need_to_build=true
         fi
+    else
+        need_to_build=true
+    fi
 
-        # Determine the build output directories
+    if $need_to_build; then
+        # Determine the build output directories.
         build_output_dirs=()
         if [[ -d "$dir/build/libs" ]]; then
             build_output_dirs+=("$dir/build/libs")
@@ -482,7 +321,7 @@ for prefix in "${build_order[@]}"; do
             build_output_dirs+=("$dir/build/distributions")
         fi
 
-        # Move existing JARs to old/ before building
+        # Move existing JARs to old/ before building.
         for build_output_dir in "${build_output_dirs[@]}"; do
             if [[ -d "$build_output_dir" ]]; then
                 mkdir -p "$build_output_dir/old"
@@ -491,107 +330,57 @@ for prefix in "${build_order[@]}"; do
             fi
         done
 
-        if $need_to_build; then
-            if [[ -f "$dir/gradlew" ]]; then
-                chmod +x "$dir/gradlew" 2>/dev/null
-            fi
+        # Suppress any gradle output before progress bar.
+        # Already suppressed by redirecting build output to build_log.
 
-            if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-                build_command="./gradlew --no-daemon --no-parallel build"
-                use_gradle=true
-            elif [[ -f "$dir/pom.xml" ]]; then
-                build_command="mvn package"
-                use_gradle=false
-            else
-                build_results["$plugin_key"]="Fail"
-                completed=$((completed + 1))
-                progress_bar "$prefix" "$plugin_name"
-                continue
-            fi
+        if [[ -f "$dir/gradlew" ]]; then
+            chmod +x "$dir/gradlew" 2>/dev/null
+        fi
 
-            # Run the build command and capture output
-            build_log="$LOG_DIR/${plugin_name}_build.log"
-            (
-                cd "$dir" || exit
-                if $use_gradle; then
-                    # Set a unique Gradle user home directory
-                    export GRADLE_USER_HOME="$dir/.gradle"
-                fi
-                $build_command
-            ) > "$build_log" 2>&1
-
-            build_exit_code=$?
-
-            if [[ $build_exit_code -eq 0 ]]; then
-                # Re-determine the build output directories after build
-                build_output_dirs=()
-                if [[ -d "$dir/build/libs" ]]; then
-                    build_output_dirs+=("$dir/build/libs")
-                fi
-                if [[ -d "$dir/target" ]]; then
-                    build_output_dirs+=("$dir/target")
-                fi
-                if [[ -d "$dir/build/distributions" ]]; then
-                    build_output_dirs+=("$dir/build/distributions")
-                fi
-
-                # Collect built jars after building
-                built_jars=()
-                for build_output_dir in "${build_output_dirs[@]}"; do
-                    if [[ -d "$build_output_dir" ]]; then
-                        for jar_file in "$build_output_dir/${plugin_name}.jar" "$build_output_dir/${plugin_name}-"[0-9]*.jar "$build_output_dir/${plugin_name}."[0-9]*.jar; do
-                            if [[ -f "$jar_file" ]]; then
-                                jar_name="$(basename "$jar_file")"
-                                if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
-                                    built_jars+=("$jar_file")
-                                fi
-                            fi
-                        done
-                    fi
-                done
-
-                if [[ ${#built_jars[@]} -gt 0 ]]; then
-                    # Select the preferred jar
-                    preferred_jar=$(select_preferred_jar "${built_jars[@]}")
-
-                    # Get the name of the preferred JAR
-                    preferred_jar_name="$(basename "$preferred_jar")"
-
-                    # Validate JAR name: it should match the expected pattern
-                    if [[ "$preferred_jar_name" == "${plugin_name}.jar" || "$preferred_jar_name" == "${plugin_name}-"[0-9]*.jar || "$preferred_jar_name" == "${plugin_name}."[0-9]*.jar ]]; then
-                        # Proceed to copy and manage the JAR
-
-                        # Remove old JARs in OUTPUT_DIR for this plugin
-                        mkdir -p "$OUTPUT_DIR/old"
-                        for old_jar in "$OUTPUT_DIR/${plugin_name}.jar" "$OUTPUT_DIR/${plugin_name}-"[0-9]*.jar "$OUTPUT_DIR/${plugin_name}."[0-9]*.jar; do
-                            if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$preferred_jar_name" ]]; then
-                                mv "$old_jar" "$OUTPUT_DIR/old/"
-                            fi
-                        done
-
-                        # Copy the preferred jar to OUTPUT_DIR with its original name
-                        cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
-
-                        build_results["$plugin_key"]="built"
-                    else
-                        echo "Error: JAR file '$preferred_jar_name' does not match expected naming pattern for plugin '$plugin_name'." >> "$build_log"
-                        echo "Build failed due to incorrect JAR naming." >> "$build_log"
-                        build_results["$plugin_key"]="Fail"
-                        continue
-                    fi
-                else
-                    echo "Error: No JAR files found after building plugin '$plugin_name'." >> "$build_log"
-                    build_results["$plugin_key"]="Fail"
-                fi
-            else
-                build_results["$plugin_key"]="Fail"
-            fi
+        if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
+            build_command="./gradlew --no-daemon --no-parallel build"
+            use_gradle=true
+        elif [[ -f "$dir/pom.xml" ]]; then
+            build_command="mvn package"
+            use_gradle=false
         else
-            # Copy existing JARs to OUTPUT_DIR
+            build_results["$plugin_key"]="Fail"
+            completed=$((completed + 1))
+            progress_bar "$prefix" "$plugin_name"
+            continue
+        fi
+
+        # Run the build command and capture output.
+        build_log="$LOG_DIR/${plugin_name}_build.log"
+        (
+            cd "$dir" || exit
+            if $use_gradle; then
+                # Set a unique Gradle user home directory.
+                export GRADLE_USER_HOME="$dir/.gradle"
+            fi
+            $build_command
+        ) > "$build_log" 2>&1
+
+        build_exit_code=$?
+
+        if [[ $build_exit_code -eq 0 ]]; then
+            # Re-determine the build output directories after build.
+            build_output_dirs=()
+            if [[ -d "$dir/build/libs" ]]; then
+                build_output_dirs+=("$dir/build/libs")
+            fi
+            if [[ -d "$dir/target" ]]; then
+                build_output_dirs+=("$dir/target")
+            fi
+            if [[ -d "$dir/build/distributions" ]]; then
+                build_output_dirs+=("$dir/build/distributions")
+            fi
+
+            # Collect built jars after building.
             built_jars=()
             for build_output_dir in "${build_output_dirs[@]}"; do
                 if [[ -d "$build_output_dir" ]]; then
-                    for jar_file in "$build_output_dir/${plugin_name}.jar" "$build_output_dir/${plugin_name}-"[0-9]*.jar "$build_output_dir/${plugin_name}."[0-9]*.jar; do
+                    for jar_file in "$build_output_dir/"*.jar; do
                         if [[ -f "$jar_file" ]]; then
                             jar_name="$(basename "$jar_file")"
                             if [[ "$jar_name" != *javadoc* && "$jar_name" != *sources* && "$jar_name" != *part* && "$jar_name" != original* ]]; then
@@ -602,46 +391,81 @@ for prefix in "${build_order[@]}"; do
                 fi
             done
 
-            if [[ ${#built_jars[@]} -gt 0 ]]; then
-                preferred_jar=$(select_preferred_jar "${built_jars[@]}")
+            # For plugins with variable names, determine possible names.
+            if [[ "$plugin_key" == "Soft-Forks/EssentialsX" ]]; then
+                plugin_names=("Essentials-OG" "EssentialsX-OG")
+            elif [[ "$plugin_key" == "Soft-Forks/EssentialsXSpawn" ]]; then
+                plugin_names=("EssentialsXSpawn-OG")
+            elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-AFKPlus" ]]; then
+                plugin_names=("MiniPlaceholders-AFKPlus")
+            elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Essentials" ]]; then
+                plugin_names=("MiniPlaceholders-Essentials")
+            elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Statistic" ]]; then
+                plugin_names=("MiniPlaceholders-Statistic")
+            else
+                plugin_names=("$plugin_name")
+            fi
 
-                # Get the name of the preferred JAR
+            sub_built_jars=()
+            for jar_file in "${built_jars[@]}"; do
+                jar_name=$(basename "$jar_file" .jar)
+                for name in "${plugin_names[@]}"; do
+                    remaining="${jar_name#$name}"
+                    if [[ "$remaining" == "" || "$remaining" =~ ^[-\.][0-9] ]]; then
+                        sub_built_jars+=("$jar_file")
+                        break
+                    fi
+                done
+            done
+
+            if [[ ${#sub_built_jars[@]} -gt 0 ]]; then
+                # Select the preferred jar.
+                preferred_jar=$(select_preferred_jar "${sub_built_jars[@]}")
+
+                # Get the name of the preferred JAR.
                 preferred_jar_name="$(basename "$preferred_jar")"
 
-                # Validate JAR name: it should match the expected pattern
-                if [[ "$preferred_jar_name" == "${plugin_name}.jar" || "$preferred_jar_name" == "${plugin_name}-"[0-9]*.jar || "$preferred_jar_name" == "${plugin_name}."[0-9]*.jar ]]; then
-                    # Remove old JARs in OUTPUT_DIR for this plugin
-                    mkdir -p "$OUTPUT_DIR/old"
-                    for old_jar in "$OUTPUT_DIR/${plugin_name}.jar" "$OUTPUT_DIR/${plugin_name}-"[0-9]*.jar "$OUTPUT_DIR/${plugin_name}."[0-9]*.jar; do
-                        if [[ -f "$old_jar" && "$old_jar" != "$OUTPUT_DIR/$preferred_jar_name" ]]; then
-                            mv "$old_jar" "$OUTPUT_DIR/old/"
-                        fi
-                    done
+                # Remove old JARs in OUTPUT_DIR for this plugin.
+                mkdir -p "$OUTPUT_DIR/old"
+                for old_jar in "$OUTPUT_DIR/"*.jar; do
+                    if [[ -f "$old_jar" ]]; then
+                        old_jar_name=$(basename "$old_jar" .jar)
+                        for name in "${plugin_names[@]}"; do
+                            remaining="${old_jar_name#$name}"
+                            if [[ "$remaining" == "" || "$remaining" =~ ^[-\.][0-9] ]]; then
+                                if [[ "$old_jar_name.jar" != "$preferred_jar_name" ]]; then
+                                    mv "$old_jar" "$OUTPUT_DIR/old/"
+                                fi
+                                break
+                            fi
+                        done
+                    fi
+                done
 
-                    # Copy the preferred jar to OUTPUT_DIR with its original name
-                    cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+                # Copy the preferred jar to OUTPUT_DIR with its original name.
+                cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
 
-                    build_results["$plugin_key"]="cached"
-                else
-                    echo "Error: JAR file '$preferred_jar_name' does not match expected naming pattern for plugin '$plugin_name'." >> "$build_log"
-                    echo "Build failed due to incorrect JAR naming." >> "$build_log"
-                    build_results["$plugin_key"]="Fail"
-                fi
+                build_results["$plugin_key"]="built"
             else
-                echo "Error: No JAR files found for plugin '$plugin_name'." >> "$build_log"
+                echo "Error: No JAR files found after building plugin '$plugin_name'." >> "$build_log"
                 build_results["$plugin_key"]="Fail"
             fi
+        else
+            build_results["$plugin_key"]="Fail"
         fi
+    else
+        # Plugin is cached; no action needed.
+        build_results["$plugin_key"]="cached"
+    fi
 
-        completed=$((completed + 1))
-        progress_bar "$prefix" "$plugin_name"
-    done
+    completed=$((completed + 1))
+    progress_bar "$prefix" "$plugin_name"
 done
 
-# Move to the next line after the progress bar
+# Move to the next line after the progress bar.
 echo
 
-# Save new commit hashes to file, sorted as per build order
+# Save new commit hashes to file, sorted as per build order.
 {
     sorted_keys=($(sort_projects "${!new_commit_hashes[@]}"))
     for plugin_key in "${sorted_keys[@]}"; do
@@ -649,7 +473,7 @@ echo
     done
 } > "$COMMIT_HASH_FILE"
 
-# Output the build results
+# Output the build results.
 echo ""
 echo "Build Summary:"
 echo ""
@@ -669,7 +493,7 @@ for project in "${!build_results[@]}"; do
     fi
 done
 
-# Print the plugins that built if any
+# Print the plugins that built if any.
 if [[ ${#pass_list[@]} -gt 0 ]]; then
     echo "Plugins built successfully:"
     echo ""
@@ -680,7 +504,7 @@ if [[ ${#pass_list[@]} -gt 0 ]]; then
     echo ""
 fi
 
-# Print cached plugins only if there are any
+# Print cached plugins only if there are any.
 if [[ ${#cached_list[@]} -gt 0 ]]; then
     echo "Cached plugins:"
     echo ""
@@ -691,7 +515,7 @@ if [[ ${#cached_list[@]} -gt 0 ]]; then
     echo ""
 fi
 
-# Print failed builds only if there are any
+# Print failed builds only if there are any.
 if [[ ${#fail_list[@]} -gt 0 ]]; then
     echo "Failed builds:"
     echo ""
@@ -702,7 +526,7 @@ if [[ ${#fail_list[@]} -gt 0 ]]; then
     echo ""
 fi
 
-# Add a descriptive closing message
+# Add a descriptive closing message.
 total_built=${#pass_list[@]}
 total_cached=${#cached_list[@]}
 total_failed=${#fail_list[@]}
@@ -719,19 +543,19 @@ echo "Build logs: $(pwd)/server/logs/"
 echo ""
 echo "Total plugins: $total_plugins"
 
-# Plugins built
+# Plugins built.
 if [[ $total_built -gt 0 ]]; then
     echo ""
     echo "Plugins built: $total_built"
 fi
 
-# Cached plugins
+# Cached plugins.
 if [[ $total_cached -gt 0 ]]; then
     echo ""
     echo "Cached plugins: $total_cached"
 fi
 
-# Failed builds
+# Failed builds.
 if [[ $total_failed -gt 0 ]]; then
     echo ""
     echo "Failed builds: $total_failed"
