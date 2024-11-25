@@ -2,6 +2,8 @@
 # Author: NotAlexNoyle (admin@true-og.net)
 #!/bin/bash
 
+# Stage 5: Assemble server.
+
 # Set java version
 sdk use graalvm64-17.0.9 
 
