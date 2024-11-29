@@ -1,2 +1,4 @@
 server/
 plugins/logs/
+bootstrap/.m2
+bootstrap/purpur-1.19.4-R0.1-SNAPSHOT.jar

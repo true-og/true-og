@@ -1,15 +1,19 @@
-To make development of the TrueOG Bootstrap easier, it is being worked on in stages:
+The TrueOG Bootstrap is being developed in six stages:
 
-Stage 0: Bootstrap bash and C compiler from only sh.
+[X] Stage 0: Bootstrap bash and C compiler from only sh.
 
-Stage 1: Bootstrap pkgsrc from bash and C.
+[-] Stage 1: Bootstrap pkgsrc from bash and C.
 
-Stage 2: Bootstrap server packages from pkgsrc.
+[X] Stage 2: Bootstrap server packages from pkgsrc.
 
-Stage 3: Bootstrap Spigot BuildTools, Purpurclip, and java.
+[✓] Stage 3: Bootstrap Java, Spigot BuildTools, and Purpur.
 
-Stage 4: Build all plugins.
+[✓] Stage 4: Build all plugins.
 
-Stage 5: Assemble server.
+[X] Stage 5: Assemble server.
 
-Stage 6: Management TUI.
+[X] Stage 6: Management TUI.
+
+[✓] = Complete
+[-] = In Development
+[X] = Not Started
