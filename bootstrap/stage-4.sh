@@ -341,7 +341,7 @@ for plugin_key in "${plugin_keys[@]}"; do
             build_command="./gradlew --no-daemon --no-parallel build"
             use_gradle=true
         elif [[ -f "$dir/pom.xml" ]]; then
-            build_command="./mvnw install"
+            build_command="./mvnw clean package"
             use_gradle=false
         else
             build_results["$plugin_key"]="Fail"
