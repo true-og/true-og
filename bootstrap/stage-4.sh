@@ -35,10 +35,10 @@ declare -A plugin_dirs
 halted=false
 
 # Move the commit_hashes.txt file to server/logs/.
-BASE_DIR="$(dirname "$0")/plugins"  # Point to plugins directory.
-OUTPUT_DIR="$(dirname "$0")/server"  # Output JAR files to server folder.
+BASE_DIR="../plugins"  # Point to plugins directory.
+OUTPUT_DIR="../server"  # Output JAR files to server folder.
 LOG_DIR="$OUTPUT_DIR/logs"  # Directory to store logs.
-COMMIT_HASH_FILE="$LOG_DIR/commit_hashes.txt"
+COMMIT_HASH_FILE="$OUTPUT_DIR/commit_hashes.txt"
 
 # Function to handle script interruption.
 cleanup() {
@@ -131,9 +131,7 @@ if [[ ${#failed_submodules[@]} -gt 0 ]]; then
     done
 fi
 
-echo
 echo "Submodules updated successfully."
-
 echo
 
 # Build list of plugin keys and collect commit hashes.
@@ -343,7 +341,7 @@ for plugin_key in "${plugin_keys[@]}"; do
             build_command="./gradlew --no-daemon --no-parallel build"
             use_gradle=true
         elif [[ -f "$dir/pom.xml" ]]; then
-            build_command="mvn package"
+            build_command="./mvnw install"
             use_gradle=false
         else
             build_results["$plugin_key"]="Fail"
