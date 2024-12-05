@@ -21,6 +21,7 @@ cat << "EOF"
 
 EOF
 
+echo
 read -p "Press Enter to start..."
 
 # Enable nullglob and extglob to handle non-matching patterns and extended globbing.
