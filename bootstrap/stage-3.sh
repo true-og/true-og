@@ -319,6 +319,10 @@ LOCAL=$(git rev-parse HEAD)
 # Get the latest commit hash from the remote ver/1.19.4 branch
 REMOTE=$(git rev-parse origin/ver/1.19.4)
 
+# Show user java version in use
+echo 'Using system java for purpur build: '
+java -version
+
 # Check if the jar file doesn't exist or if there are updates in the repository
 if [ -z "$PURPUR_JAR_FILE" ] || [ "$LOCAL" != "$REMOTE" ]; then
     if [ "$LOCAL" != "$REMOTE" ]; then
@@ -359,8 +363,8 @@ if [ -z "$PURPUR_JAR_FILE" ] || [ "$LOCAL" != "$REMOTE" ]; then
     BUILD_PID=$!
     spinner $BUILD_PID "$message"
 
-    # Copy the built Purpur jar to the bootstrap directory
-    cp build/libs/purpur-*.jar ../bootstrap/
+    # Copy the built Purpur jar to the server directory
+    cp build/libs/purpur-*.jar ../server/
 
     echo "Bootstrapping of Purpur complete."
 else
@@ -370,6 +374,5 @@ fi
 # Navigate back to the original directory
 cd ../bootstrap/ || { echo "Failed to navigate back to bootstrap directory."; exit 1; }
 
-rm -rf purpur-bundler-1.19.4-R0.1-SNAPSHOT-mojmap.jar
-
-rm -rf .gradle/
+# Clean up mojang mapped jar.
+rm -rf ../server/purpur-bundler-1.19.4-R0.1-SNAPSHOT-mojmap.jar
