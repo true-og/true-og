@@ -339,7 +339,7 @@ for plugin_key in "${plugin_keys[@]}"; do
         fi
 
         if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-            build_command="./gradlew --no-daemon --no-parallel clean build"
+            build_command="GRADLE_OPTS="-Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO" ./gradlew --gradle-user-home "$GRADLE_USER_HOME" --no-daemon --no-parallel clean build"
             use_gradle=true
         elif [[ -f "$dir/pom.xml" ]]; then
             build_command="./mvnw clean package"

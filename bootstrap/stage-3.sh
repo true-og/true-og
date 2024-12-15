@@ -6,7 +6,6 @@
 WORK_DIR="$(pwd)"
 BUILD_TOOLS_JAR="$WORK_DIR/BuildTools.jar"
 SELF_MAVEN_LOCAL_REPO="$WORK_DIR/.m2/repository"
-SYSTEM_MAVEN_LOCAL_REPO="$HOME/.m2/repository"
 GRADLE_USER_HOME="$WORK_DIR/.gradle"
 export GRADLE_USER_HOME
 ORIGINAL_PATH="$PATH"
@@ -132,23 +131,22 @@ version_lt() {
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
 }
 
-# Function to check if standard artifact exists
+# Function to check if standard artifact exists only in SELF_MAVEN_LOCAL_REPO
 artifact_exists_standard() {
     local version="$1"
     local maven_version="${version}-R0.1-SNAPSHOT"
     local artifact_rel_path="org/spigotmc/spigot-api/$maven_version/spigot-api-$maven_version.jar"
 
     local artifact_path_self="$SELF_MAVEN_LOCAL_REPO/$artifact_rel_path"
-    local artifact_path_system="$SYSTEM_MAVEN_LOCAL_REPO/$artifact_rel_path"
 
-    if [ -f "$artifact_path_self" ] || [ -f "$artifact_path_system" ]; then
-        return 0  # Artifact exists
+    if [ -f "$artifact_path_self" ]; then
+        return 0  # Artifact exists in SELF repository
     else
-        return 1  # Artifact does not exist
+        return 1  # Artifact does not exist in SELF repository
     fi
 }
 
-# Function to check if remapped artifacts exist
+# Function to check if remapped artifacts exist only in SELF_MAVEN_LOCAL_REPO
 artifact_exists_remapped() {
     local version="$1"
 
@@ -160,14 +158,10 @@ artifact_exists_remapped() {
         local artifact_path_mojang_self="$SELF_MAVEN_LOCAL_REPO/$artifact_rel_path/spigot-$maven_version-remapped-mojang.jar"
         local artifact_path_obf_self="$SELF_MAVEN_LOCAL_REPO/$artifact_rel_path/spigot-$maven_version-remapped-obf.jar"
 
-        local artifact_path_mojang_system="$SYSTEM_MAVEN_LOCAL_REPO/$artifact_rel_path/spigot-$maven_version-remapped-mojang.jar"
-        local artifact_path_obf_system="$SYSTEM_MAVEN_LOCAL_REPO/$artifact_rel_path/spigot-$maven_version-remapped-obf.jar"
-
-        if { [ -f "$artifact_path_mojang_self" ] && [ -f "$artifact_path_obf_self" ]; } || \
-           { [ -f "$artifact_path_mojang_system" ] && [ -f "$artifact_path_obf_system" ]; }; then
-            return 0  # Artifacts exist in either location
+        if [ -f "$artifact_path_mojang_self" ] && [ -f "$artifact_path_obf_self" ]; then
+            return 0  # Both remapped artifacts exist in SELF repository
         else
-            return 1  # Artifacts do not exist
+            return 1  # Artifacts do not exist in SELF repository
         fi
     else
         return 1  # Not applicable
@@ -367,6 +361,8 @@ if [ -z "$PURPUR_JAR_FILE" ] || [ "$LOCAL" != "$REMOTE" ]; then
     cp build/libs/purpur-*.jar ../server/
 
     echo "Bootstrapping of Purpur complete."
+    echo $GRADLE_USER_HOME
+    echo $SELF_MAVEN_LOCAL_REPO
 else
     echo "Purpur is up-to-date and the jar file exists. Skipping bootstrapping of Purpur."
 fi
@@ -376,3 +372,4 @@ cd ../bootstrap/ || { echo "Failed to navigate back to bootstrap directory."; ex
 
 # Clean up mojang mapped jar.
 rm -rf ../server/purpur-bundler-1.19.4-R0.1-SNAPSHOT-mojmap.jar
+
