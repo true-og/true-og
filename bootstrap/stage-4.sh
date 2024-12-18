@@ -36,6 +36,8 @@ BASE_DIR="$PROJECT_ROOT/plugins"
 OUTPUT_DIR="$PROJECT_ROOT/server"
 LOG_DIR="$OUTPUT_DIR/logs"
 COMMIT_HASH_FILE="$OUTPUT_DIR/commit_hashes.txt"
+GRADLE_USER_HOME="$PROJECT_ROOT/.gradle"
+SELF_MAVEN_LOCAL_REPO="$PROJECT_ROOT/.m2/repository"
 
 declare -A plugin_commit_hash_before
 declare -A plugin_commit_hash_after
@@ -339,7 +341,7 @@ for plugin_key in "${plugin_keys[@]}"; do
         fi
 
         if [[ -f "$dir/build.gradle" || -f "$dir/settings.gradle" || -f "$dir/build.gradle.kts" || -f "$dir/settings.gradle.kts" ]]; then
-            build_command="GRADLE_OPTS="-Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO" ./gradlew --gradle-user-home "$GRADLE_USER_HOME" --no-daemon --no-parallel clean build"
+            build_command="./gradlew -DSELF_MAVEN_LOCAL_REPO=~/Downloads/true-og/bootstrap/.m2/repository --gradle-user-home=$GRADLE_USER_HOME --no-daemon --no-parallel clean build"
             use_gradle=true
         elif [[ -f "$dir/pom.xml" ]]; then
             build_command="./mvnw clean package"
