@@ -7,11 +7,8 @@ WORK_DIR="$(pwd)"
 BUILD_TOOLS_JAR="$WORK_DIR/BuildTools.jar"
 SELF_MAVEN_LOCAL_REPO="$WORK_DIR/.m2/repository"
 GRADLE_USER_HOME="$WORK_DIR/.gradle"
-export GRADLE_USER_HOME
 ORIGINAL_PATH="$PATH"
-
-# Set MAVEN_OPTS to ensure BuildTools uses the custom Maven local repository
-export MAVEN_OPTS="-Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO"
+MAVEN_OPTS="-Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO"
 
 # Function to handle script interruption
 cleanup() {

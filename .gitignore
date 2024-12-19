@@ -2,3 +2,4 @@ server/
 plugins/logs/
 bootstrap/.m2/
 bootstrap/.gradle/
+.gradle/
