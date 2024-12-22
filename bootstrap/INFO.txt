@@ -6,13 +6,15 @@ The TrueOG Bootstrap is being developed in six stages:
 
 [X] Stage 2: Bootstrap server packages from pkgsrc.
 
-[✓] Stage 3: Bootstrap Java, Spigot BuildTools, and Purpur.
+[✓] Stage 3: Bootstrap Java and Spigot BuildTools.
 
-[✓] Stage 4: Build all plugins.
+[✓] Stage 4: Bootstrap Purpur.
 
-[X] Stage 5: Assemble server.
+[X] Stage 5: Build all plugins.
 
-[X] Stage 6: Management TUI.
+[X] Stage 6: Assemble server.
+
+[X] Stage 7: Management TUI.
 
 [✓] = Complete
 [-] = In Development

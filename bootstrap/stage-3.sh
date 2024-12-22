@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Stage 3: Bootstrap Spigot BuildTools, Purpur, and Java.
+# Stage 3: Bootstrap Java and Spigot BuildTools.
 
 # Variables
 WORK_DIR="$(pwd)"
@@ -285,91 +285,4 @@ rm -f "$BUILD_TOOLS_JAR"
 rm -rf "$WORK_DIR/"[1-9]*
 
 echo "Bootstrapping of Spigot BuildTools complete."
-
-# Bootstrapping Purpur with progress bar
-echo "Bootstrapping Purpur..."
-
-# Navigate to the Purpur submodule directory
-cd ../Purpur || { echo "Failed to navigate to Purpur directory."; exit 1; }
-
-# Set MAVEN_OPTS for Purpur build
-export MAVEN_OPTS="-Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO"
-
-# Navigate back to the bootstrap directory
-cd ../bootstrap/ || { echo "Failed to navigate to bootstrap directory."; exit 1; }
-
-# Check if the Purpur jar file exists
-PURPUR_JAR_FILE=$(ls purpur-*.jar 2>/dev/null | head -n 1)
-
-# Navigate back to the Purpur directory
-cd ../Purpur || { echo "Failed to navigate back to Purpur directory."; exit 1; }
-
-# Fetch the latest commits from the remote repository
-git fetch origin ver/1.19.4
-
-# Get the current commit hash on ver/1.19.4 branch
-LOCAL=$(git rev-parse HEAD)
-
-# Get the latest commit hash from the remote ver/1.19.4 branch
-REMOTE=$(git rev-parse origin/ver/1.19.4)
-
-# Show user java version in use
-echo 'Using system java for purpur build: '
-java -version
-
-# Check if the jar file doesn't exist or if there are updates in the repository
-if [ -z "$PURPUR_JAR_FILE" ] || [ "$LOCAL" != "$REMOTE" ]; then
-    if [ "$LOCAL" != "$REMOTE" ]; then
-        echo "Purpur repository has updates. Pulling changes..."
-        # Reset to the latest commit on ver/1.19.4 branch
-        git reset --hard origin/ver/1.19.4
-    fi
-
-    # Step 1: applyPatches
-    message="[1/4] Applying Purpur patches..."
-    (
-        ./gradlew applyPatches --gradle-user-home "$GRADLE_USER_HOME" > /dev/null 2>&1
-    ) &
-    BUILD_PID=$!
-    spinner $BUILD_PID "$message"
-
-    # Step 2: build
-    message="[2/4] Building Purpur..."
-    (
-        ./gradlew build --gradle-user-home "$GRADLE_USER_HOME" > /dev/null 2>&1
-    ) &
-    BUILD_PID=$!
-    spinner $BUILD_PID "$message"
-
-    # Step 3: createMojmapBundlerJar
-    message="[3/4] Creating Mojmap Bundler Jar..."
-    (
-        ./gradlew createMojmapBundlerJar --gradle-user-home "$GRADLE_USER_HOME" > /dev/null 2>&1
-    ) &
-    BUILD_PID=$!
-    spinner $BUILD_PID "$message"
-
-    # Step 4: publishToMavenLocal
-    message="[4/4] Publishing Purpur to Maven Local..."
-    (
-        ./gradlew publishToMavenLocal --gradle-user-home "$GRADLE_USER_HOME" > /dev/null 2>&1
-    ) &
-    BUILD_PID=$!
-    spinner $BUILD_PID "$message"
-
-    # Copy the built Purpur jar to the server directory
-    cp build/libs/purpur-*.jar ../server/
-
-    echo "Bootstrapping of Purpur complete."
-    echo $GRADLE_USER_HOME
-    echo $SELF_MAVEN_LOCAL_REPO
-else
-    echo "Purpur is up-to-date and the jar file exists. Skipping bootstrapping of Purpur."
-fi
-
-# Navigate back to the original directory
-cd ../bootstrap/ || { echo "Failed to navigate back to bootstrap directory."; exit 1; }
-
-# Clean up mojang mapped jar.
-rm -rf ../server/purpur-bundler-1.19.4-R0.1-SNAPSHOT-mojmap.jar
 
