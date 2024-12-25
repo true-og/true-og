@@ -513,7 +513,10 @@ total_cached=${#cached_list[@]}
 total_failed=${#fail_list[@]}
 total_plugins=$((total_built + total_cached + total_failed))
 
-if [[ $total_built -eq 0 ]]; then
+#
+# Only print "ERROR: Failed to build all plugins!" if there are actually any failed builds.
+#
+if [[ $total_failed -gt 0 ]]; then
     echo "ERROR: Failed to build all plugins!"
 else
     echo "Completed plugin jarfiles: $OUTPUT_DIR/"
