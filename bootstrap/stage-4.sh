@@ -345,7 +345,7 @@ for plugin_key in "${plugin_keys[@]}"; do
             build_command="./gradlew -DSELF_MAVEN_LOCAL_REPO=$SELF_MAVEN_LOCAL_REPO --gradle-user-home=$GRADLE_USER_HOME --no-daemon --no-parallel clean build"
             use_gradle=true
         elif [[ -f "$dir/pom.xml" ]]; then
-            build_command="./mvnw clean package"
+            build_command="./mvnw clean package -Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO"
             use_gradle=false
         else
             build_results["$plugin_key"]="Fail"
