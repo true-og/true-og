@@ -32,8 +32,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Define absolute paths for directories.
-BASE_DIR="$PROJECT_ROOT/plugins"
-OUTPUT_DIR="$PROJECT_ROOT/server"
+BASE_DIR="$PROJECT_ROOT/plugin-suites"
+OUTPUT_DIR="$PROJECT_ROOT/plugins"
 LOG_DIR="$OUTPUT_DIR/logs"
 COMMIT_HASH_FILE="$OUTPUT_DIR/commit_hashes.txt"
 WORK_DIR="$(pwd)"
