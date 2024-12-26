@@ -171,8 +171,12 @@ echo "Copying 'start.sh' into the Purpur jar's folder..."
 
 # Stage 5: Assemble server.
 
-# Set java version
-sdk use graalvm64-17.0.9
+# Source the self-contained SDKMAN installation
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/bootstrap/.sdkman/bin/sdkman-init.sh"
+
+# Use the desired Java version from the self-contained SDKMAN
+sdk use java 17.0.9-graalce
 
 # Auto-restart loop
 while [ true ]; do
