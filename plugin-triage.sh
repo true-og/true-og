@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# This is free and unencumbered software released into the public domain.
+# Author: NotAlexNoyle (admin@true-og.net)
 
 # Moves all plugin JARs that start with a letter greater than an alphabetically specified boundary letter into a "disabled" folder.
 
