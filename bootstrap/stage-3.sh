@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Stage 3: Bootstrap Java and Spigot BuildTools.
+# TrueOG Bootstrap Stage 3: Bootstrap Java and Spigot BuildTools.
 
 # Variables
 WORK_DIR="$(pwd)"

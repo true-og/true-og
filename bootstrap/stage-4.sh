@@ -2,7 +2,7 @@
 # This is free and unencumbered software released into the public domain.
 # Builds all TrueOG Plugins and puts them into a folder called server/ in the current directory.
 
-# Stage 4: Build all plugins.
+# TrueOG Bootstrap Stage 4: Build all plugins.
 
 # Display ASCII art and wait for user input to start
 cat << "EOF"

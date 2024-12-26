@@ -2,7 +2,7 @@
 # This is free and unencumbered software released into the public domain.
 # Author: NotAlexNoyle (admin@true-og.net)
 
-# Stage 1: Bootstrap pkgsrc from bash and C.
+# TrueOG Bootstrap Stage 1: Bootstrap pkgsrc from bash and C.
 
 # Detect what enviornment the script is being run on and store it in variables for later reference.
 ARCHITECTURE=$(uname -m)

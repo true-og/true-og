@@ -10,11 +10,9 @@ The TrueOG Bootstrap is being developed in six stages:
 
 [✓] Stage 4: Build all plugins.
 
-[✓] Stage 5: Bootstrap Purpur.
+[-] Stage 5: Assemble server with sdkman and Purpur.
 
-[X] Stage 6: Assemble server.
-
-[X] Stage 7: Management TUI.
+[X] Stage 6: Management TUI.
 
 [✓] = Complete
 [-] = In Development
