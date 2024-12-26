@@ -1,18 +1,18 @@
 [submodule "website"]
 	path = website
 	url = https://github.com/true-og/website.git
-[submodule "plugins/Soft-Forks"]
-	path = plugins/Soft-Forks
-	url = https://github.com/true-og/Soft-Forks
-[submodule "plugins/Hard-Forks"]
-	path = plugins/Hard-Forks
-	url = https://github.com/true-og/Hard-Forks
-[submodule "plugins/Third-Party"]
-	path = plugins/Third-Party
-	url = https://github.com/true-og/Third-Party
-[submodule "plugins/OG-Suite"]
-	path = plugins/OG-Suite
-	url = https://github.com/true-og/OG-Suite
 [submodule "Purpur"]
 	path = Purpur
 	url = https://github.com/true-og/Purpur
+[submodule "plugin-suites/OG-Suite"]
+	path = plugin-suites/OG-Suite
+	url = https://github.com/true-og/OG-Suite
+[submodule "plugin-suites/Hard-Forks"]
+	path = plugin-suites/Hard-Forks
+	url = https://github.com/true-og/Hard-Forks
+[submodule "plugin-suites/Soft-Forks"]
+	path = plugin-suites/Soft-Forks
+	url = https://github.com/true-og/Soft-Forks
+[submodule "plugin-suites/Third-Party"]
+	path = plugin-suites/Third-Party
+	url = https://github.com/true-og/Third-Party

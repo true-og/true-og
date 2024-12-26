@@ -1,8 +1,32 @@
-server/
-plugins/logs/
+# Server files.
+banned-ips.json
+banned-players.json
+bukkit.yml
+cache/
+commands.yml
+config/
+eula.txt
+help.yml
+libraries/
+logs/
+ops.json
+permissions.yml
+plugins/
+pufferfish.yml
+purpur-*.jar
+purpur.yml
+server.properties
+spigot.yml
+start.sh
+usercache.json
+version_history.json
+whitelist.json
+world/
+world_nether/
+world_the_end/
+
+# TrueOG Bootstrap internals.
 bootstrap/.m2
 bootstrap/.gradle
 bootstrap/.sdkman
-purpur-*.jar
-start.sh
 .gradle/
