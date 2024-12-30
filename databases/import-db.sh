@@ -18,6 +18,7 @@ databases=(
   "tab"
   "gamemodeinventories"
   "unions"
+  "playtimes"
 )
 
 # Drop & Create databases in a loop.
