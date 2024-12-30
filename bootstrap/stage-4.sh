@@ -216,30 +216,67 @@ progress_bar() {
 
 select_preferred_jar() {
     local jars=("$@")
-    # Prefer jars without "-all" in their name.
-    local preferred_jars=()
+
+    # 1) Filter out jars that end with '-all.jar'.
+    local filtered_jars=()
     for jar in "${jars[@]}"; do
-        basename=$(basename "$jar")
-        if [[ ! "$basename" =~ -all\.jar$ ]]; then
-            preferred_jars+=("$jar")
+        local bn
+        bn=$(basename "$jar")
+        if [[ ! "$bn" =~ -all\.jar$ ]]; then
+            filtered_jars+=("$jar")
         fi
     done
-    if [[ ${#preferred_jars[@]} -eq 0 ]]; then
-        # No jars without "-all.jar"
-        preferred_jars=("${jars[@]}")
+
+    # If nothing remains after filtering out '-all.jar', revert to original list.
+    if [[ ${#filtered_jars[@]} -eq 0 ]]; then
+        filtered_jars=("${jars[@]}")
     fi
-    # Select the jar with the shortest name.
-    preferred_jar="${preferred_jars[0]}"
-    shortest_name_length=${#preferred_jar}
-    for jar in "${preferred_jars[@]}"; do
-        basename=$(basename "$jar")
-        if [[ ${#basename} -lt $shortest_name_length ]]; then
-            preferred_jar="$jar"
-            shortest_name_length=${#basename}
+
+    # 2) Among the remaining, prefer jars that are exactly '[anything]-[digits(.digits...)].jar'
+    local pattern='^([A-Za-z0-9._-]+)-([0-9]+(\.[0-9]+)*)\.jar$'
+    local exact_matches=()
+    for jar in "${filtered_jars[@]}"; do
+        local bn
+        bn=$(basename "$jar")
+
+        # If it strictly matches "NAME-VERSION.jar" (where VERSION is numeric-dot-numeric...)
+        if [[ $bn =~ $pattern ]]; then
+            exact_matches+=("$jar")
         fi
     done
+
+    # 3) If one or more "plain" jars are found, pick the shortest filename among them.
+    if [[ ${#exact_matches[@]} -gt 0 ]]; then
+        local preferred_jar="${exact_matches[0]}"
+        local shortest_len=${#preferred_jar}
+        for jar in "${exact_matches[@]}"; do
+            local bn
+            bn=$(basename "$jar")
+            if [[ ${#bn} -lt $shortest_len ]]; then
+                preferred_jar="$jar"
+                shortest_len=${#bn}
+            fi
+        done
+
+        echo "$preferred_jar"
+        return
+    fi
+
+    # 4) If no "plain" jar was found, fall back to the jar with the shortest filename among filtered_jars.
+    local preferred_jar="${filtered_jars[0]}"
+    local shortest_len=${#preferred_jar}
+    for jar in "${filtered_jars[@]}"; do
+        local bn
+        bn=$(basename "$jar")
+        if [[ ${#bn} -lt $shortest_len ]]; then
+            preferred_jar="$jar"
+            shortest_len=${#bn}
+        fi
+    done
+
     echo "$preferred_jar"
 }
+
 
 sort_projects() {
     local projects=("$@")
