@@ -59,7 +59,7 @@ spinner() {
 ###############################################################################
 echo "Checking local SDKMAN environment..."
 if [ ! -d "$WORK_DIR/.sdkman" ]; then
-    echo "No local SDKMAN found. Installing..."
+    echo "Initializing SDKMAN..."
     export SDKMAN_DIR="$WORK_DIR/.sdkman"
 
     {
