@@ -1,9 +1,7 @@
 # Server files.
 banned-ips.json
 banned-players.json
-bukkit.yml
 cache/
-commands.yml
 config/
 eula.txt
 help.yml
@@ -12,7 +10,6 @@ logs/
 ops.json
 permissions.yml
 plugins/
-pufferfish.yml
 purpur-*.jar
 wepif.yml
 purpur.yml
@@ -31,3 +28,6 @@ bootstrap/.m2
 bootstrap/.gradle
 bootstrap/.sdkman
 .gradle/
+
+# Server databases.
+databases/*.txt
