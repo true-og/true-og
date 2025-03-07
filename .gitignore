@@ -1,4 +1,4 @@
-# Server files.
+# Non-redistributable server files.
 banned-ips.json
 banned-players.json
 cache/
@@ -11,6 +11,7 @@ ops.json
 permissions.yml
 plugins/
 purpur-*.jar
+server.properties
 usercache.json
 version_history.json
 whitelist.json
