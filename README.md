@@ -26,17 +26,17 @@ Our admin team is structured as a unionized, democratic worker cooperative. We d
 
 **Platforms the TrueOG Bootstrap officially supports:**
 
-| Platform             | amd64               | aarch64              | armhf                | musl                 | armv7               |
-|:--------------------:|:-------------------:|:--------------------:|:--------------------:|:--------------------:|:-------------------:|
-| **Linux**            | :heavy_check_mark:  | :heavy_check_mark:   | :heavy_check_mark:   | :heavy_check_mark:   |                     |
-| **macOS**            | :heavy_check_mark:  | :heavy_check_mark:   |                      |                      |                     |
-| **Windows**          | :heavy_check_mark:  |                      |                      |                      |                     |
-| **FreeBSD Family**   | :heavy_check_mark:  |                      |                      |                      |                     |
-| **OpenBSD**          | :heavy_check_mark:  |                      |                      |                      |                     |
-| **NetBSD**           | :heavy_check_mark:  |                      |                      |                      |                     |
-| **SerenityOS**       | :heavy_check_mark:  |                      |                      |                      |                     |
-| **iOS (Jailbroken)** |                     |                      |                      |                      | :heavy_check_mark:  |
-| **Android**          |                     | :heavy_check_mark:   |                      |                      |                     |
+| Platform             | amd64               | aarch64              | armhf                | armv7               |
+|:--------------------:|:-------------------:|:--------------------:|:--------------------:|:-------------------:|
+| **Linux**            | :heavy_check_mark:  | :heavy_check_mark:   | :heavy_check_mark:   |                     |
+| **macOS**            | :heavy_check_mark:  | :heavy_check_mark:   |                      |                     |
+| **Windows**          | :heavy_check_mark:  |                      |                      |                     |
+| **FreeBSD Family**   | :heavy_check_mark:  |                      |                      |                     |
+| **OpenBSD**          | :heavy_check_mark:  |                      |                      |                     |
+| **NetBSD**           | :heavy_check_mark:  |                      |                      |                     |
+| **Minix**            | :heavy_check_mark:  |                      |                      |                     |
+| **iOS (Jailbroken)** |                     |                      |                      | :heavy_check_mark:  |
+| **Android**          |                     | :heavy_check_mark:   |                      |                     |
 
 
 *ad astra per aspera*
