@@ -2,8 +2,8 @@
 banned-ips.json
 banned-players.json
 cache/
-config/
 eula.txt
+pufferfish.yml
 help.yml
 libraries/
 logs/
@@ -15,9 +15,12 @@ server.properties
 usercache.json
 version_history.json
 whitelist.json
-world/
-world_nether/
-world_the_end/
+world
+world_nether
+world_nether_old/
+world_old/
+world_the_end
+world_the_end_old/
 
 # TrueOG Bootstrap internals.
 bootstrap/.m2
