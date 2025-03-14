@@ -29,10 +29,10 @@ echo
 # List of databases to process
 databases=(
   "bounty_hunters"
-  "core_protect"
+  #"core_protect"
   "cosmetics_og"
   "gamemodeinventories"
-  "luckperms"
+  #"luckperms"
   "playtimes"
   "quickshop"
   "unions"
