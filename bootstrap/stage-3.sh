@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# This is free and unencumbered software released into the public domain.
+# Author: NotAlexNoyle (admin@true-og.net)
 
 # TrueOG Bootstrap Stage 3: Bootstrap Java and Spigot BuildTools.
 
@@ -17,7 +19,8 @@ export MAVEN_OPTS="-Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO"
 cleanup() {
     echo
     echo "ERROR: Script interrupted! There may be build artifacts left over. Please clean the directory before running the script again."
-    tput cnorm
+    # Show cursor (raw ANSI escape code instead of tput cnorm)
+    echo -en "\033[?25h"
     exit 1
 }
 
@@ -30,13 +33,15 @@ spinner() {
     local message="$2"
     local spin='-\|/'
     local i=0
-    tput civis  # Hide cursor
-    while kill -0 $pid 2>/dev/null; do
+    # Hide cursor (raw ANSI escape code instead of tput civis)
+    echo -en "\033[?25l"
+    while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % 4 ))
         printf "\r[%c] %s" "${spin:$i:1}" "$message"
         sleep .1
     done
-    tput cnorm  # Show cursor
+    # Show cursor (raw ANSI escape code instead of tput cnorm)
+    echo -en "\033[?25h"
     printf "\r[✓] %s\n" "$message"
 }
 
@@ -56,7 +61,9 @@ check_java_version() {
         java_version=$(echo "$java_version_output" | awk -F[\"_] '/version/ {print $2}')
         local major_version
         major_version=$(echo "$java_version" | awk -F. '{print $1}')
-        if [ "$major_version" -eq "$required_version" ] || { [ "$major_version" -eq "1" ] && [ "$(echo "$java_version" | awk -F. '{print $2}')" -eq "$required_version" ]; }; then
+        if [ "$major_version" -eq "$required_version" ] || \
+           { [ "$major_version" -eq "1" ] && [ "$(echo "$java_version" | awk -F. '{print $2}')" -eq "$required_version" ]; }
+        then
             return 0  # Required Java version is in PATH
         else
             return 1  # Different Java version in PATH

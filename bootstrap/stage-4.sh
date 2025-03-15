@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # This is free and unencumbered software released into the public domain.
-# Builds all TrueOG Plugins and puts them into a folder called server/ in the current directory.
+# Author: NotAlexNoyle (admin@true-og.net)
 
-# TrueOG Bootstrap Stage 4: Build all plugins.
+# TrueOG Bootstrap Stage 4: Builds all TrueOG Plugins and puts them into a folder called server/ in the current directory.
 
 # Display ASCII art and wait for user input to start
 cat << "EOF"
