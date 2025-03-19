@@ -27,20 +27,20 @@ cleanup() {
 # Trap SIGINT (Ctrl+C)
 trap cleanup SIGINT
 
-# Function to display a spinner while a background process is running
+# Spinner function (shows a rotating spinner until PID ends)
 spinner() {
     local pid=$1
     local message="$2"
     local spin='-\|/'
     local i=0
-    # Hide cursor (raw ANSI escape code instead of tput civis)
+    # Hide cursor (raw ANSI code)
     echo -en "\033[?25l"
     while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % 4 ))
         printf "\r[%c] %s" "${spin:$i:1}" "$message"
         sleep .1
     done
-    # Show cursor (raw ANSI escape code instead of tput cnorm)
+    # Show cursor again
     echo -en "\033[?25h"
     printf "\r[✓] %s\n" "$message"
 }
@@ -51,7 +51,7 @@ if [ ! -f "$BUILD_TOOLS_JAR" ]; then
     wget -q -O "$BUILD_TOOLS_JAR" "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
 fi
 
-# Function to check if the required Java version exists in PATH
+# Check if required Java version is in PATH
 check_java_version() {
     local required_version="$1"
     if command -v java > /dev/null 2>&1; then
@@ -64,22 +64,22 @@ check_java_version() {
         if [ "$major_version" -eq "$required_version" ] || \
            { [ "$major_version" -eq "1" ] && [ "$(echo "$java_version" | awk -F. '{print $2}')" -eq "$required_version" ]; }
         then
-            return 0  # Required Java version is in PATH
+            return 0  # Correct version is in PATH
         else
-            return 1  # Different Java version in PATH
+            return 1  # Different version in PATH
         fi
     else
-        return 1  # Java not found in PATH
+        return 1  # Java not found at all
     fi
 }
 
-# Function to download and set up Java
+# Download & set up a local Java if needed
 download_java() {
     local java_version="$1"
     local java_dir="$WORK_DIR/java$java_version"
 
     if check_java_version "$java_version"; then
-        echo "Java $java_version is already available in PATH. Skipping download."
+        echo "Java $java_version is already in PATH. Skipping download."
     else
         if [ ! -d "$java_dir" ]; then
             mkdir -p "$java_dir"
@@ -111,75 +111,59 @@ download_java() {
     fi
 }
 
-# Set Java version
+# Switch PATH to use local Java if needed
 use_java_version() {
     local java_version="$1"
     if check_java_version "$java_version"; then
-        echo "Using system Java $java_version from PATH"
+        echo "Using system Java $java_version from PATH."
         unset JAVA_HOME
         export PATH="$ORIGINAL_PATH"
     else
         export JAVA_HOME="$WORK_DIR/java$java_version"
         export PATH="$JAVA_HOME/bin:$ORIGINAL_PATH"
-        echo "Using Java $java_version from $JAVA_HOME"
+        echo "Using local Java $java_version from $JAVA_HOME"
     fi
 }
 
-# Function to compare versions
+# Version compare helpers
 version_ge() {
-    # Returns 0 if $1 >= $2
+    # Return 0 if $1 >= $2
     [ "$1" = "$2" ] && return 0
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
 }
-
 version_lt() {
-    # Returns 0 if $1 < $2
+    # Return 0 if $1 < $2
     [ "$1" = "$2" ] && return 1
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
 }
 
-# Function to check if standard artifact exists only in SELF_MAVEN_LOCAL_REPO
+# Check if standard jar for a version is present in local repo
 artifact_exists_standard() {
     local version="$1"
+    # Checking spigot-api jar presence is a quick standard check
     local maven_version="${version}-R0.1-SNAPSHOT"
     local artifact_rel_path="org/spigotmc/spigot-api/$maven_version/spigot-api-$maven_version.jar"
 
     local artifact_path_self="$SELF_MAVEN_LOCAL_REPO/$artifact_rel_path"
-
-    if [ -f "$artifact_path_self" ]; then
-        return 0  # Artifact exists in SELF repository
-    else
-        return 1  # Artifact does not exist in SELF repository
-    fi
+    [ -f "$artifact_path_self" ]
 }
 
-# Function to check if remapped artifacts exist only in SELF_MAVEN_LOCAL_REPO
+# Check if remapped jars for a version are present in local repo
 artifact_exists_remapped() {
     local version="$1"
-
-    # Only applicable for versions 1.17 and above
+    # Only meaningful if version >= 1.17
     if version_ge "$version" "1.17"; then
         local maven_version="${version}-R0.1-SNAPSHOT"
         local artifact_rel_path="org/spigotmc/spigot/$maven_version"
-
         local artifact_path_mojang_self="$SELF_MAVEN_LOCAL_REPO/$artifact_rel_path/spigot-$maven_version-remapped-mojang.jar"
         local artifact_path_obf_self="$SELF_MAVEN_LOCAL_REPO/$artifact_rel_path/spigot-$maven_version-remapped-obf.jar"
-
-        if [ -f "$artifact_path_mojang_self" ] && [ -f "$artifact_path_obf_self" ]; then
-            return 0  # Both remapped artifacts exist in SELF repository
-        else
-            return 1  # Artifacts do not exist in SELF repository
-        fi
+        [ -f "$artifact_path_mojang_self" ] && [ -f "$artifact_path_obf_self" ]
     else
-        return 1  # Not applicable
+        return 1
     fi
 }
 
-# Initialize build_count and total_builds
-build_count=0
-total_builds=0
-
-# Arrays of Minecraft versions for each Java version
+# Build lists
 java8_versions=(
     1.8 1.8.3 1.8.8 1.9 1.9.2 1.9.4 1.10.2 1.11 1.11.2
     1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2
@@ -192,25 +176,28 @@ java17_versions=(
 )
 java21_versions=(1.20.6)
 
-# Function to calculate total builds
-calculate_total_builds() {
+# Count up total build tasks
+build_count=0
+total_builds=0
+
+count_build_tasks() {
     local versions=("$@")
-    for version in "${versions[@]}"; do
-        if version_lt "$version" "1.17"; then
-            total_builds=$((total_builds + 1))  # Standard build
+    for v in "${versions[@]}"; do
+        if version_lt "$v" "1.17"; then
+            # One standard build
+            total_builds=$((total_builds + 1))
         else
-            total_builds=$((total_builds + 1))  # Remapped build
+            # Two builds: standard + remapped
+            total_builds=$((total_builds + 2))
         fi
     done
 }
+count_build_tasks "${java8_versions[@]}"
+count_build_tasks "${java16_versions[@]}"
+count_build_tasks "${java17_versions[@]}"
+count_build_tasks "${java21_versions[@]}"
 
-# Calculate total builds
-calculate_total_builds "${java8_versions[@]}"
-calculate_total_builds "${java16_versions[@]}"
-calculate_total_builds "${java17_versions[@]}"
-calculate_total_builds "${java21_versions[@]}"
-
-# Function to build versions
+# Build a list of Spigot versions under a given Java
 build_versions() {
     local java_version="$1"
     shift
@@ -220,38 +207,53 @@ build_versions() {
 
     for version in "${versions[@]}"; do
         if version_lt "$version" "1.17"; then
-            # Build standard version only
+            # Only needs standard build
             ((build_count++))
             if artifact_exists_standard "$version"; then
-                message="[$build_count/$total_builds] Skipping Minecraft $version (standard), already built."
-                echo "[✓] $message"
+                echo "[✓] [$build_count/$total_builds] Skipping Minecraft $version (standard), already built."
             else
-                message="[$build_count/$total_builds] Building Minecraft $version (standard) with Java $java_version..."
+                message="[$build_count/$total_builds] Building Minecraft $version (standard) on Java $java_version..."
                 (
                     mkdir -p "$version"
-                    pushd "$version" > /dev/null
+                    pushd "$version" >/dev/null
                     java -jar "$BUILD_TOOLS_JAR" --rev "$version" > build_standard.log 2>&1
-                    popd > /dev/null
+                    popd >/dev/null
                 ) &
-                BUILD_PID=$!
-                spinner $BUILD_PID "$message"
+                spinner $! "$message"
             fi
+
         else
-            # Build remapped version only
+            #
+            # For 1.17+ we do BOTH standard build (no flags) AND remapped build (--remapped).
+            #
+            # 1) Standard build:
+            ((build_count++))
+            if artifact_exists_standard "$version"; then
+                echo "[✓] [$build_count/$total_builds] Skipping Minecraft $version (standard), already built."
+            else
+                message="[$build_count/$total_builds] Building Minecraft $version (standard) on Java $java_version..."
+                (
+                    mkdir -p "$version/standard"
+                    pushd "$version/standard" >/dev/null
+                    java -jar "$BUILD_TOOLS_JAR" --rev "$version" > build_standard.log 2>&1
+                    popd >/dev/null
+                ) &
+                spinner $! "$message"
+            fi
+
+            # 2) Remapped build:
             ((build_count++))
             if artifact_exists_remapped "$version"; then
-                message="[$build_count/$total_builds] Skipping Minecraft $version (remapped), already built."
-                echo "[✓] $message"
+                echo "[✓] [$build_count/$total_builds] Skipping Minecraft $version (remapped), already built."
             else
-                message="[$build_count/$total_builds] Building Minecraft $version (remapped) with Java $java_version..."
+                message="[$build_count/$total_builds] Building Minecraft $version (remapped) on Java $java_version..."
                 (
                     mkdir -p "$version/remapped"
-                    pushd "$version/remapped" > /dev/null
+                    pushd "$version/remapped" >/dev/null
                     java -jar "$BUILD_TOOLS_JAR" --rev "$version" --remapped > build_remapped.log 2>&1
-                    popd > /dev/null
+                    popd >/dev/null
                 ) &
-                BUILD_PID=$!
-                spinner $BUILD_PID "$message"
+                spinner $! "$message"
             fi
         fi
     done
@@ -263,31 +265,23 @@ download_java 16
 download_java 17
 download_java 21
 
-# Build Java 8 versions
-build_versions 8 "${java8_versions[@]}"
-
-# Build Java 16 versions
+# Build with each Java version
+build_versions 8  "${java8_versions[@]}"
 build_versions 16 "${java16_versions[@]}"
-
-# Build Java 17 versions
 build_versions 17 "${java17_versions[@]}"
-
-# Build Java 21 versions
 build_versions 21 "${java21_versions[@]}"
 
-# Clean up Java directories if they were downloaded
-[ -d "$WORK_DIR/java8" ] && rm -rf "$WORK_DIR/java8"
+# Optionally remove downloaded Java folders
+[ -d "$WORK_DIR/java8" ]  && rm -rf "$WORK_DIR/java8"
 [ -d "$WORK_DIR/java16" ] && rm -rf "$WORK_DIR/java16"
 [ -d "$WORK_DIR/java17" ] && rm -rf "$WORK_DIR/java17"
 [ -d "$WORK_DIR/java21" ] && rm -rf "$WORK_DIR/java21"
 
 # Restore original PATH
 export PATH="$ORIGINAL_PATH"
-
-# Unset environment variables
 unset JAVA_HOME
 
-# Clean up BuildTools.jar and build directories
+# Clean up BuildTools.jar and version build directories if desired
 rm -f "$BUILD_TOOLS_JAR"
 rm -rf "$WORK_DIR/"[1-9]*
 
