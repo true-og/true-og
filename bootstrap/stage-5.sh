@@ -164,6 +164,11 @@ for prefix in "${build_order[@]}"; do
               "$plugin_key" == "Third-Party/plugins" ]]; then
             continue
         fi
+        plugin_keys+=("$plugin_key")
+        commit_hash="$(get_plugin_commit_hash "$dir")"
+        plugin_commit_hash_after["$plugin_key"]="$commit_hash"
+        new_commit_hashes["$plugin_key"]="$commit_hash"
+        plugin_dirs["$plugin_key"]="$dir"
     done
 done
 
@@ -308,6 +313,9 @@ for plugin_key in "${plugin_keys[@]}"; do
 
     progress_bar "$prefix" "$plugin_name"
 
+    commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
+    commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
+
     need_to_build=false
     if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" ]]; then
         jar_exists=false
@@ -402,6 +410,8 @@ for plugin_key in "${plugin_keys[@]}"; do
                     done
                 fi
             done
+
+            plugin_names=("$plugin_name")
 
             sub_built_jars=()
             for jar_file in "${built_jars[@]}"; do
