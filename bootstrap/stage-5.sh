@@ -164,24 +164,6 @@ for prefix in "${build_order[@]}"; do
               "$plugin_key" == "Third-Party/plugins" ]]; then
             continue
         fi
-
-        if [[ "$plugin_key" == "Soft-Forks/Essentials-OG" ]]; then
-            # Add both pseudo-plugins.
-            plugin_keys+=("Soft-Forks/EssentialsX")
-            plugin_keys+=("Soft-Forks/EssentialsXSpawn")
-            # Set commit hash under Essentials-OG.
-            commit_hash="$(get_plugin_commit_hash "$dir")"
-            plugin_commit_hash_after["Soft-Forks/Essentials-OG"]="$commit_hash"
-            new_commit_hashes["Soft-Forks/Essentials-OG"]="$commit_hash"
-            plugin_dirs["Soft-Forks/EssentialsX"]="$dir"
-            plugin_dirs["Soft-Forks/EssentialsXSpawn"]="$dir"
-        else
-            plugin_keys+=("$plugin_key")
-            commit_hash="$(get_plugin_commit_hash "$dir")"
-            plugin_commit_hash_after["$plugin_key"]="$commit_hash"
-            new_commit_hashes["$plugin_key"]="$commit_hash"
-            plugin_dirs["$plugin_key"]="$dir"
-        fi
     done
 done
 
@@ -326,32 +308,10 @@ for plugin_key in "${plugin_keys[@]}"; do
 
     progress_bar "$prefix" "$plugin_name"
 
-    # Handle pseudo plugins using Essentials-OG commit hash.
-    if [[ "$plugin_key" == "Soft-Forks/EssentialsX" || "$plugin_key" == "Soft-Forks/EssentialsXSpawn" ]]; then
-        commit_hash="${plugin_commit_hash_after["Soft-Forks/Essentials-OG"]}"
-        commit_hash_before="${plugin_commit_hash_before["Soft-Forks/Essentials-OG"]}"
-    else
-        commit_hash="${plugin_commit_hash_after["$plugin_key"]}"
-        commit_hash_before="${plugin_commit_hash_before["$plugin_key"]}"
-    fi
-
     need_to_build=false
     if [[ -n "$commit_hash_before" && -n "$commit_hash" && "$commit_hash_before" == "$commit_hash" ]]; then
-        # Plugin did not change. Check if JAR exists.
         jar_exists=false
-        if [[ "$plugin_key" == "Soft-Forks/EssentialsX" ]]; then
-            plugin_names=("Essentials-OG" "EssentialsX-OG")
-        elif [[ "$plugin_key" == "Soft-Forks/EssentialsXSpawn" ]]; then
-            plugin_names=("EssentialsXSpawn-OG")
-        elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-AFKPlus" ]]; then
-            plugin_names=("MiniPlaceholders-AFKPlus")
-        elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Essentials" ]]; then
-            plugin_names=("MiniPlaceholders-Essentials")
-        elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Statistic" ]]; then
-            plugin_names=("MiniPlaceholders-Statistic")
-        else
-            plugin_names=("$plugin_name")
-        fi
+        plugin_names=("$plugin_name")
 
         for jar_file in "$OUTPUT_DIR"/*.jar; do
             base_name=$(basename "$jar_file" .jar)
@@ -442,21 +402,6 @@ for plugin_key in "${plugin_keys[@]}"; do
                     done
                 fi
             done
-
-            # Handle plugin-specific jar name patterns.
-            if [[ "$plugin_key" == "Soft-Forks/EssentialsX" ]]; then
-                plugin_names=("Essentials-OG" "EssentialsX-OG")
-            elif [[ "$plugin_key" == "Soft-Forks/EssentialsXSpawn" ]]; then
-                plugin_names=("EssentialsXSpawn-OG")
-            elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-AFKPlus" ]]; then
-                plugin_names=("MiniPlaceholders-AFKPlus")
-            elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Essentials" ]]; then
-                plugin_names=("MiniPlaceholders-Essentials")
-            elif [[ "$plugin_key" == "Hard-Forks/MiniPlaceholders-Statistic" ]]; then
-                plugin_names=("MiniPlaceholders-Statistic")
-            else
-                plugin_names=("$plugin_name")
-            fi
 
             sub_built_jars=()
             for jar_file in "${built_jars[@]}"; do
