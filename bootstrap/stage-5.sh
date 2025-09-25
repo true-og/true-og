@@ -368,10 +368,6 @@ for plugin_key in "${plugin_keys[@]}"; do
 
         if [[ -f "$dir/build.gradle.kts" && -f "$dir/settings.gradle.kts" ]]; then
             build_command="./gradlew -DSELF_MAVEN_LOCAL_REPO=$SELF_MAVEN_LOCAL_REPO --gradle-user-home=$GRADLE_USER_HOME --no-daemon --no-parallel clean build eclipse --warning-mode all"
-            use_gradle=true
-        elif [[ -f "$dir/pom.xml" ]]; then
-            build_command="./mvnw clean package -Dmaven.repo.local=$SELF_MAVEN_LOCAL_REPO"
-            use_gradle=false
         else
             build_results["$plugin_key"]="Fail"
             completed=$((completed + 1))
@@ -382,9 +378,7 @@ for plugin_key in "${plugin_keys[@]}"; do
         build_log="$LOG_DIR/${plugin_name}_build.log"
         (
             cd "$dir" || exit
-            if $use_gradle; then
-                export GRADLE_USER_HOME="$dir/.gradle"
-            fi
+            export GRADLE_USER_HOME="$dir/.gradle"
             $build_command
         ) > "$build_log" 2>&1
 
