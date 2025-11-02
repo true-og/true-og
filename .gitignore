@@ -27,6 +27,7 @@ bootstrap/.m2
 bootstrap/.gradle
 bootstrap/.sdkman
 .gradle/
+.env
 
 # Server databases.
 databases/*.txt
