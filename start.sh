@@ -4,43 +4,32 @@
 
 # Stage 5: Assemble server.
 
-# Source the self-contained SDKMAN installation
+# Source the current directory.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source the self-contained SDKMAN installation.
 source "$SCRIPT_DIR/bootstrap/.sdkman/bin/sdkman-init.sh"
 
-# Use the desired Java version from the self-contained SDKMAN
+# Use the desired Java version from the self-contained SDKMAN.
 sdk use java 17.0.9-graalce
 
-# Auto-restart loop
-while [ true ]; do
+# Source SubstAgent for environment variable support in config files.
+AGENT_JAR="$SCRIPT_DIR/SubstAgent/build/libs/SubstAgent-70c1f5d464.jar"
+
+# Auto-restarting optimized minecraft java server loop.
+while true; do
     echo "Starting TrueOG..."
-    java -Xms43008M -Xmx43008M \
-         -Dterminal.jline=false \
-         -XX:+UseG1GC \
-         -Dpaper.playerconnection.keepalive=60 \
-         -XX:+UnlockDiagnosticVMOptions \
-         -XX:+DebugNonSafepoints \
-         -XX:+ParallelRefProcEnabled \
-         -XX:MaxGCPauseMillis=200 \
-         -XX:+UnlockExperimentalVMOptions \
-         -XX:+DisableExplicitGC \
-         -XX:+AlwaysPreTouch \
-         -XX:G1HeapWastePercent=5 \
-         -XX:G1MixedGCCountTarget=4 \
-         -XX:G1MixedGCLiveThresholdPercent=90 \
-         -XX:G1RSetUpdatingPauseTimePercent=5 \
-         -XX:SurvivorRatio=32 \
-         -XX:+PerfDisableSharedMem \
-         -XX:MaxTenuringThreshold=1 \
-         -XX:G1NewSizePercent=30 \
-         -XX:G1MaxNewSizePercent=40 \
-         -XX:G1HeapRegionSize=8M \
-         -XX:G1ReservePercent=20 \
-         -XX:InitiatingHeapOccupancyPercent=15 \
-         -Dusing.aikars.flags=https://mcflags.emc.gs \
-         -Daikars.new.flags=true \
-         --add-modules=jdk.incubator.vector \
-         -jar purpur-1.19.4.jar nogui
+    java -Xms64G -Xmx64G \
+         -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
+         -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch \
+         -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
+         -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 \
+         -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 \
+         -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 \
+         -XX:+PerfDisableSharedMem --add-modules=jdk.incubator.vector \
+         -Dterminal.jline=false -Dpaper.playerconnection.keepalive=60 \
+         -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true \
+         -javaagent:"$AGENT_JAR" -Xbootclasspath/a:"$AGENT_JAR" -jar purpur-1.19.4.jar nogui
 
     for i in 5 4 3 2 1; do
         printf 'Server restarting in %s... (press CTRL-C to exit)\n' "${i}"
