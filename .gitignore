@@ -2,6 +2,7 @@
 banned-ips.json
 banned-players.json
 cache/
+crash-reports/
 eula.txt
 pufferfish.yml
 help.yml
@@ -31,3 +32,4 @@ bootstrap/.sdkman
 
 # Server databases.
 databases/*.txt
+databases/databases.tar

@@ -12,18 +12,17 @@
 # Discord: https://discord.gg/papermc
 # Website: https://papermc.io/
 # License: https://raw.githubusercontent.com/true-og/Paper/refs/heads/main/LICENSE.md
-
 _version: 28
 chunk-loading:
   autoconfig-send-distance: true
   enable-frustum-priority: false
   global-max-chunk-load-rate: -1.0
   global-max-chunk-send-rate: -1.0
-  global-max-concurrent-loads: 2400.0
+  global-max-concurrent-loads: -1.0
   max-concurrent-sends: 120
   min-load-radius: 2
   player-max-chunk-load-rate: -1.0
-  player-max-concurrent-loads: 12.0
+  player-max-concurrent-loads: 10.0
   target-player-chunk-send-rate: 100.0
 chunk-system:
   gen-parallelism: default
@@ -57,13 +56,13 @@ logging:
   use-rgb-for-named-text-colors: true
 messages:
   kick:
-    authentication-servers-down: 'ERROR: There was a problem with connecting to Mojang
+    authentication-servers-down: '<red>ERROR: There was a problem connecting to the Mojang
       authentication servers.'
-    connection-throttle: 'KICKED from TrueOG: You tried to reconnect too quickly!
-      Please wait a few seconds before reconnecting.'
-    flying-player: 'KICKED from TrueOG: You are suspected of fly hacking!'
-    flying-vehicle: 'KICKED from TrueOG: You are suspected of boat flying!'
-  no-permission: '<red>ERROR: You do not have permission to perform that command.'
+    connection-throttle: '<red>KICKED from TrueOG: You tried to reconnect too quickly!
+      Wait a few seconds before reconnecting.'
+    flying-player: '<red>KICKED from TrueOG: You are suspected of fly hacking!'
+    flying-vehicle: '<red>KICKED from TrueOG: You are suspected of boat flying!'
+  no-permission: '<red>ERROR: You do not have permission to perform that command!'
   use-display-name-in-quit-message: true
 misc:
   chat-threads:
@@ -79,15 +78,19 @@ misc:
   use-dimension-type-for-custom-spawners: false
 packet-limiter:
   all-packets:
-    action: KICK
+    action: DROP
     interval: 7.0
-    max-packet-rate: 500.0
+    max-packet-rate: 900.0
   kick-message: <red><lang:disconnect.exceeded_packet_rate>
   overrides:
     ServerboundPlaceRecipePacket:
       action: DROP
       interval: 4.0
       max-packet-rate: 5.0
+    ServerboundKeepAlivePacket:
+      action: DROP
+      interval: 10.0
+      max-packet-rate: 40.0
 player-auto-save:
   max-per-tick: -1
   rate: -1
@@ -101,13 +104,13 @@ proxies:
     secret: ''
 scoreboards:
   save-empty-scoreboard-teams: false
-  track-plugin-scoreboards: false
+  track-plugin-scoreboards: true
 spam-limiter:
-  incoming-packet-threshold: 300
+  incoming-packet-threshold: 250
   recipe-spam-increment: 1
   recipe-spam-limit: 20
   tab-spam-increment: 1
-  tab-spam-limit: 500
+  tab-spam-limit: 300
 timings:
   enabled: true
   hidden-config-entries:
@@ -116,7 +119,7 @@ timings:
   history-interval: 300
   history-length: 3600
   server-name: TrueOG Network
-  server-name-privacy: false
+  server-name-privacy: true
   url: https://timings.aikar.co/
   verbose: true
 unsupported-settings:
@@ -126,5 +129,5 @@ unsupported-settings:
   allow-piston-duplication: true
   perform-username-validation: true
 watchdog:
-  early-warning-delay: 10000
-  early-warning-every: 5000
+  early-warning-delay: 15000
+  early-warning-every: 7500

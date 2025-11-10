@@ -5,33 +5,33 @@
 # If you need help with the configuration or have any questions related to Purpur,
 # join us in our Discord guild.
 #
-# Website: https://purpurmc.org 
+# Website: https://purpurmc.org
 # Docs: https://purpurmc.org/docs
 # License: https://raw.githubusercontent.com/true-og/Purpur/refs/heads/ver/1.19.4/LICENSE
 
 verbose: false
 settings:
   messages:
-    cannot-ride-mob: <red>You cannot mount that mob
-    afk-broadcast-away: <yellow><italic>%s is now AFK
-    afk-broadcast-back: <yellow><italic>%s is no longer AFK
+    cannot-ride-mob: <red>ERROR: That mob is not ridable.
+    afk-broadcast-away: ''
+    afk-broadcast-back: ''
     afk-broadcast-use-display-name: false
-    afk-tab-list-prefix: '[AFK] '
+    afk-tab-list-prefix: ''
     afk-tab-list-suffix: ''
-    credits-command-output: <green>%s has been shown the end credits
-    demo-command-output: <green>%s has been shown the demo screen
-    ping-command-output: <green>%s's ping is %sms
-    ram-command-output: '<green>Ram Usage: <used>/<xmx> (<percent>)'
-    rambar-command-output: <green>Rambar toggled <onoff> for <target>
-    tpsbar-command-output: <green>Tpsbar toggled <onoff> for <target>
-    dont-run-with-scissors: <red><italic>Don't run with scissors!
-    uptime-command-output: <green>Server uptime is <uptime>
+    credits-command-output: <dark_purple>%s defeated the ender dragon. <green>GG<dark_purple>!
+    demo-command-output: ''
+    ping-command-output: <green>%s's ping is: <yellow>%sms
+    ram-command-output: '<green>RAM Used: <yellow><used>/<xmx> (<percent>)'
+    rambar-command-output: <gold>RAM bar toggled <onoff> for <target>.
+    tpsbar-command-output: <gold>TPS bar toggled <onoff> for <target>.
+    dont-run-with-scissors: <red><italic>Don't run with scissors, you pizza faced cinderblock!
+    uptime-command-output: <green>Server uptime is: <uptime>
     unverified-username: default
     sleep-skipping-night: default
-    sleeping-players-percent: default
+    sleeping-players-percent: '<gold>At least 50% of online players must be sleeping or AFK.'
     death-message:
-      run-with-scissors: <player> slipped and fell on their shears
-      stonecutter: <player> has sawed themself in half
+      run-with-scissors: <player> slipped and stabbed themselves through the heart with their own scissors.
+      stonecutter: <player> tried to use a sawblade as a foot massager.
   clamp-attributes: true
   server-mod-name: Purpur 1.19.4
   use-alternate-keepalive: true
@@ -47,7 +47,7 @@ settings:
   lagging-threshold: 18.0
   command:
     rambar:
-      title: <gold>RAM:</gold> <yellow><used>/<xmx> (<percent>)</yellow>
+      title: <green>RAM Usage: <yellow><used>/<xmx> (<percent>)</yellow>
       overlay: NOTCHED_20
       progress-color:
         good: GREEN
@@ -74,12 +74,12 @@ settings:
       tick-interval: 20
     compass:
       title: 'S  ·  ◈  ·  ◈  ·  ◈  ·  SW  ·  ◈  ·  ◈  ·  ◈  ·  W  ·  ◈  ·  ◈  ·  ◈  ·  NW  ·  ◈  ·  ◈  ·  ◈  ·  N  ·  ◈  ·  ◈  ·  ◈  ·  NE  ·  ◈  ·  ◈  ·  ◈  ·  E  ·  ◈  ·  ◈  ·  ◈  ·  SE  ·  ◈  ·  ◈  ·  ◈  ·  S  ·  ◈  ·  ◈  ·  ◈  ·  SW  ·  ◈  ·  ◈  ·  ◈  ·  W  ·  ◈  ·  ◈  ·  ◈  ·  NW  ·  ◈  ·  ◈  ·  ◈  ·  N  ·  ◈  ·  ◈  ·  ◈  ·  NE  ·  ◈  ·  ◈  ·  ◈  ·  E  ·  ◈  ·  ◈  ·  ◈  ·  SE  ·  ◈  ·  ◈  ·  ◈  ·  '
-      overlay: PROGRESS
+      overlay: NOTCHED_20
       progress-color: GREEN
       percent: 1.0
       tick-interval: 5
     gamemode:
-      requires-specific-permission: false
+      requires-specific-permission: true
     hide-hidden-players-from-entity-selector: true
     uptime:
       format: <days><hours><minutes><seconds>
@@ -116,16 +116,16 @@ settings:
     kelp:
       max-growth-age: 25
     twisting_vines:
-      max-growth-age: 50
+      max-growth-age: 25
     weeping_vines:
-      max-growth-age: 50
+      max-growth-age: 25
     disable-mushroom-updates: false
     disable-note-block-updates: false
     disable-chorus-plant-updates: false
   enchantment:
     allow-infinity-and-mending-together: true
     allow-infinity-on-crossbow: false
-    allow-looting-on-shears: true
+    allow-looting-on-shears: false
     allow-transparent-blocks-in-enchantment-box: true
     anvil:
       allow-unsafe-enchants: false
@@ -140,15 +140,15 @@ settings:
   allow-water-placement-in-the-end: true
   logger:
     suppress-init-legacy-material-errors: true
-    suppress-ignored-advancement-warnings: false
+    suppress-ignored-advancement-warnings: true
     suppress-unrecognized-recipe-errors: false
     suppress-setblock-in-far-chunk-errors: false
     suppress-library-loader: false
   network:
     upnp-port-forwarding: false
-    max-joins-per-second: true
+    max-joins-per-second: 10
     kick-for-out-of-order-chat: false
-  username-valid-characters: ^[a-zA-Z0-9_.]*$
+  username-valid-characters: ^[A-Za-z0-9_]{3,16}$
   food-properties: {}
   fix-network-serialized-items-in-creative: true
   blast-resistance-overrides: {}
@@ -187,6 +187,8 @@ settings:
       distance: 0.5
     minecraft:orange_bed:
       distance: 0.5
+    minecraft:slime_block:
+    damage: 0.0
 config-version: 32
 world-settings:
   default:
@@ -196,10 +198,10 @@ world-settings:
       anvil:
         allow-colors: true
         use-mini-message: true
-        iron-ingots-used-for-repair: 6
-        obsidian-used-for-damage: 0
+        iron-ingots-used-for-repair: -1
+        obsidian-used-for-damage: -1
       azalea:
-        growth-chance: 0.01
+        growth-chance: 0.02
       beacon:
         effect-range:
           level-1: 20
@@ -212,7 +214,7 @@ world-settings:
         explode-on-villager-sleep: false
         explosion-power: 5.0
         explosion-fire: true
-        explosion-effect: NONE
+        explosion-effect: BLOCK
       big_dripleaf:
         tilt-delay:
           FULL: 100
@@ -222,7 +224,7 @@ world-settings:
         silk-touch: true
       cactus:
         breaks-from-solid-neighbors: true
-        affected-by-bonemeal: true
+        affected-by-bonemeal: false
       sugar_cane:
         affected-by-bonemeal: true
       nether_wart:
@@ -245,9 +247,9 @@ world-settings:
       end-crystal:
         baseless:
           explode: true
-          explosion-power: 6.0
+          explosion-power: 3.0
           explosion-fire: false
-          explosion-effect: BLOCK
+          explosion-effect: NONE
         base:
           explode: true
           explosion-power: 6.0
@@ -261,9 +263,9 @@ world-settings:
         disable-trampling: false
         only-players-trample: false
         feather-fall-distance-affects-trampling: true
-        trample-height: 1.5
+        trample-height: 2.01
       flowering_azalea:
-        growth-chance: 0.01
+        growth-chance: 0.02
       furnace:
         use-lava-from-underneath: false
       end_portal:
@@ -281,7 +283,7 @@ world-settings:
       piston:
         block-push-limit: 24
       magma-block:
-        damage-when-sneaking: true
+        damage-when-sneaking: false
         damage-with-frost-walker: false
       powder_snow:
         bypass-mob-griefing: false
@@ -291,7 +293,7 @@ world-settings:
         explode: true
         explosion-power: 5.0
         explosion-fire: true
-        explosion-effect: NONE
+        explosion-effect: BLOCK
       sand:
         fix-duping: true
       sculk_shrieker:
@@ -299,7 +301,7 @@ world-settings:
       shulker_box:
         allow-oversized-stacks: false
       sign:
-        right-click-edit: true
+        right-click-edit: false
         allow-colors: true
       slab:
         break-individual-slabs-when-sneaking: true
@@ -309,7 +311,7 @@ world-settings:
       sponge:
         absorption:
           area: 64
-          radius: 8
+          radius: 6
         absorbs-lava: false
       stonecutter:
         damage: 0.5
@@ -515,10 +517,10 @@ world-settings:
             condition: air_above
             drops: {}
             into: minecraft:farmland
-        replant-crops: false
+        replant-crops: true
         replant-nether-warts: false
     ridable-settings:
-      babies-are-ridable: false
+      babies-are-ridable: true
       untamed-tamables-are-ridable: false
       use-night-vision: false
       use-dismounts-underwater-tag: true
@@ -581,16 +583,16 @@ world-settings:
         breeding-delay-ticks: 6000
       cat:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 10.0
         spawn-delay: 1200
         scan-range-for-other-cats:
           swamp-hut: 16
-          village: 48
+          village: 36
         breeding-delay-ticks: 6000
-        default-collar-color: RED
+        default-collar-color: GREEN
         takes-damage-from-water: false
         always-drop-exp: false
       cave_spider:
@@ -600,10 +602,10 @@ world-settings:
         attributes:
           max_health: 12.0
         takes-damage-from-water: true
-        always-drop-exp: false
+        always-drop-exp: true
       chicken:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 4.0
@@ -637,15 +639,15 @@ world-settings:
         controllable: true
         attributes:
           max_health: 20.0
-        naturally-charged-chance: 0.1
+        naturally-charged-chance: 0.01
         allow-griefing: true
         bypass-mob-griefing: false
         takes-damage-from-water: false
         explode-when-killed: false
-        health-impacts-explosion: false
-        always-drop-exp: false
-        head-visibility-percent: 0.5
-        encircle-target: true
+        health-impacts-explosion: true
+        always-drop-exp: true
+        head-visibility-percent: 0.25
+        encircle-target: false
       dolphin:
         ridable: true
         controllable: true
@@ -654,7 +656,7 @@ world-settings:
           speed: 1.0
           damage: 2.0
         attributes:
-          max_health: 10.0
+          max_health: 20.0
         disable-treasure-searching: false
         takes-damage-from-water: false
         naturally-aggressive-to-players-chance: 0.0
@@ -687,14 +689,14 @@ world-settings:
           try-existing-chickens: true
         takes-damage-from-water: false
         can-break-doors: true
-        always-drop-exp: false
+        always-drop-exp: true
       elder_guardian:
         ridable: false
         controllable: true
         attributes:
           max_health: 80.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       ender_dragon:
         ridable: true
         ridable-in-water: false
@@ -717,13 +719,13 @@ world-settings:
         bypass-mob-griefing: false
         takes-damage-from-water: true
         aggressive-towards-endermites: true
-        aggressive-towards-endermites-only-spawned-by-player-thrown-ender-pearls: false
+        aggressive-towards-endermites-only-spawned-by-player-thrown-ender-pearls: true
         ignore-players-wearing-dragon-head: true
         disable-player-stare-aggression: false
         ignore-projectiles: false
         always-drop-exp: true
       endermite:
-        ridable: false
+        ridable: true
         ridable-in-water: false
         controllable: true
         attributes:
@@ -738,10 +740,10 @@ world-settings:
           max_health: 24.0
         bypass-mob-griefing: false
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       fox:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 10.0
@@ -754,17 +756,17 @@ world-settings:
         ridable: true
         ridable-in-water: true
         controllable: true
-        ridable-jump-height: 0.6499999761581421
+        ridable-jump-height: 1.29999995232
         breeding-delay-ticks: 6000
       ghast:
-        ridable: false
+        ridable: true
         ridable-in-water: false
         controllable: true
         ridable-max-y: 320.0
         attributes:
-          max_health: 10.0
+          max_health: 20.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       giant:
         ridable: true
         ridable-in-water: true
@@ -774,7 +776,7 @@ world-settings:
         attributes:
           max_health: 100.0
         step-height: 2.0
-        jump-height: 1.0
+        jump-height: 3.0
         have-ai: true
         have-hostile-ai: true
         takes-damage-from-water: false
@@ -786,7 +788,7 @@ world-settings:
           max_health: 10.0
         can-fly: true
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
         rainglow-mode: rainbow
       goat:
         ridable: true
@@ -803,7 +805,7 @@ world-settings:
         attributes:
           max_health: 30.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       hoglin:
         ridable: false
         ridable-in-water: false
@@ -818,10 +820,10 @@ world-settings:
         attributes:
           max_health:
             min: 15.0
-            max: 30.0
+            max: 60.0
           jump_strength:
             min: 0.4
-            max: 1.0
+            max: 2.3
           movement_speed:
             min: 0.1125
             max: 0.3375
@@ -840,7 +842,7 @@ world-settings:
           chance: 0.05
           try-existing-chickens: true
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       illusioner:
         ridable: false
         ridable-in-water: false
@@ -850,14 +852,14 @@ world-settings:
         attributes:
           max_health: 32.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       iron_golem:
         ridable: true
         ridable-in-water: true
         controllable: true
         can-swim: true
         attributes:
-          max_health: 100.0
+          max_health: 150.0
         takes-damage-from-water: false
         poppy-calms-anger: true
         healing-calms-anger: false
@@ -906,7 +908,7 @@ world-settings:
             max: 30.0
           jump_strength:
             min: 0.5
-            max: 0.5
+            max: 1.0
           movement_speed:
             min: 0.175
             max: 0.175
@@ -915,7 +917,7 @@ world-settings:
         always-drop-exp: false
       ocelot:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 10.0
@@ -924,7 +926,7 @@ world-settings:
         always-drop-exp: false
       panda:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 20.0
@@ -933,7 +935,7 @@ world-settings:
         always-drop-exp: false
       parrot:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         ridable-max-y: 320.0
         attributes:
@@ -953,8 +955,8 @@ world-settings:
         attributes:
           max_health: '20.0'
           attack_damage: 6 + size
-        attacked-by-crystal-range: 0.0
-        attacked-by-crystal-damage: 1.0
+        attacked-by-crystal-range: 2.0
+        attacked-by-crystal-damage: 3.0
         orbit-crystal-radius: 0.0
         spawn:
           min-sky-darkness: 5
@@ -964,7 +966,7 @@ world-settings:
           per-attempt:
             min: 1
             max: -1
-        burn-in-light: 1
+        burn-in-light: 0.5
         burn-in-daylight: true
         ignore-players-with-torch: false
         flames-on-swoop: false
@@ -1020,25 +1022,25 @@ world-settings:
         breedable-item: ''
         breeding-delay-ticks: 6000
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       pufferfish:
         ridable: false
         controllable: true
         attributes:
-          max_health: 3.0
+          max_health: 1.0
         takes-damage-from-water: false
         always-drop-exp: false
       rabbit:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 3.0
-        spawn-toast-chance: 0.0
-        spawn-killer-rabbit-chance: 0.0
+        spawn-toast-chance: 0.025
+        spawn-killer-rabbit-chance: 0.05
         breeding-delay-ticks: 6000
         bypass-mob-griefing: false
-        takes-damage-from-water: false
+        takes-damage-from-water: true
         always-drop-exp: true
       ravager:
         ridable: false
@@ -1059,25 +1061,25 @@ world-settings:
         - minecraft:carrots
         - minecraft:potatoes
         - minecraft:wheat
-        always-drop-exp: false
+        always-drop-exp: true
       salmon:
-        ridable: false
+        ridable: true
         controllable: true
         attributes:
-          max_health: 3.0
+          max_health: 6.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       sheep:
         ridable: true
-        ridable-in-water: true
+        ridable-in-water: false
         controllable: true
         attributes:
           max_health: 8.0
         breeding-delay-ticks: 6000
         bypass-mob-griefing: false
         takes-damage-from-water: false
-        always-drop-exp: false
-        jeb-shear-random-color: true
+        always-drop-exp: true
+        jeb-shear-random-color: false
       shulker:
         ridable: false
         ridable-in-water: false
@@ -1094,14 +1096,14 @@ world-settings:
         change-color-with-dye: false
         always-drop-exp: false
       silverfish:
-        ridable: false
+        ridable: true
         ridable-in-water: false
         controllable: true
         attributes:
           max_health: 8.0
         bypass-mob-griefing: false
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       skeleton:
         ridable: false
         ridable-in-water: false
@@ -1109,28 +1111,28 @@ world-settings:
         attributes:
           max_health: 20.0
         takes-damage-from-water: false
-        always-drop-exp: false
-        head-visibility-percent: 0.5
+        always-drop-exp: true
+        head-visibility-percent: 0.25
         feed-wither-roses: 0
-        bow-accuracy: 14 - difficulty * 4
+        bow-accuracy: 10
       skeleton_horse:
-        ridable-in-water: true
-        can-swim: true
+        ridable-in-water: false
+        can-swim: false
         attributes:
           max_health:
             min: 15.0
             max: 15.0
           jump_strength:
             min: 0.4
-            max: 1.0
+            max: 2.0
           movement_speed:
             min: 0.2
-            max: 0.2
+            max: 0.4
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       slime:
-        ridable: false
-        ridable-in-water: false
+        ridable: true
+        ridable-in-water: true
         controllable: true
         attributes:
           max_health: size * size
@@ -1138,21 +1140,21 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: true
       snow_golem:
-        ridable: false
+        ridable: true
         ridable-in-water: false
         controllable: true
-        leave-trail-when-ridden: false
+        leave-trail-when-ridden: true
         attributes:
-          max_health: 4.0
+          max_health: 8.0
         drop-pumpkin-when-sheared: true
         pumpkin-can-be-added-back: true
         min-shoot-interval-ticks: 20
         max-shoot-interval-ticks: 20
         snow-ball-modifier: 10.0
-        attack-distance: 1.25
+        attack-distance: 1.75
         bypass-mob-griefing: false
         takes-damage-from-water: true
-        always-drop-exp: false
+        always-drop-exp: true
       sniffer:
         ridable: true
         ridable-in-water: true
@@ -1166,7 +1168,7 @@ world-settings:
         attributes:
           max_health: 10.0
         immune-to-EAR: true
-        water-offset-check: 3.5
+        water-offset-check: 3.0
         can-fly: false
         takes-damage-from-water: false
         always-drop-exp: true
@@ -1177,7 +1179,7 @@ world-settings:
         attributes:
           max_health: 16.0
         takes-damage-from-water: true
-        always-drop-exp: false
+        always-drop-exp: true
       stray:
         ridable: false
         ridable-in-water: false
@@ -1185,9 +1187,9 @@ world-settings:
         attributes:
           max_health: 20.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       strider:
-        ridable: false
+        ridable: true
         ridable-in-water: false
         controllable: true
         attributes:
@@ -1195,13 +1197,13 @@ world-settings:
         breeding-delay-ticks: 6000
         give-saddle-back: false
         takes-damage-from-water: true
-        always-drop-exp: false
+        always-drop-exp: true
       tadpole:
         ridable: false
         ridable-in-water: false
         controllable: true
       trader_llama:
-        ridable: false
+        ridable: true
         ridable-in-water: false
         controllable: true
         attributes:
@@ -1223,7 +1225,7 @@ world-settings:
         attributes:
           max_health: 3.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       turtle:
         ridable: true
         ridable-in-water: true
@@ -1241,7 +1243,7 @@ world-settings:
         attributes:
           max_health: 14.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       villager:
         ridable: false
         ridable-in-water: false
@@ -1264,8 +1266,8 @@ world-settings:
           check-interval: 100
         display-trade-item: true
         spawn-iron-golem:
-          radius: 0
-          limit: 0
+          radius: 16
+          limit: 2
       vindicator:
         ridable: false
         ridable-in-water: false
@@ -1273,9 +1275,9 @@ world-settings:
         attributes:
           max_health: 24.0
         johnny:
-          spawn-chance: 0.0
+          spawn-chance: 0.005
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       wandering_trader:
         ridable: false
         ridable-in-water: false
@@ -1298,7 +1300,7 @@ world-settings:
         attributes:
           max_health: 26.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       wither:
         ridable: false
         ridable-in-water: false
@@ -1311,9 +1313,9 @@ world-settings:
         bypass-mob-griefing: false
         takes-damage-from-water: false
         can-ride-vehicles: false
-        explosion-radius: 1.0
+        explosion-radius: 2.0
         play-spawn-sound: true
-        always-drop-exp: false
+        always-drop-exp: true
       wither_skeleton:
         ridable: false
         ridable-in-water: false
@@ -1321,13 +1323,13 @@ world-settings:
         attributes:
           max_health: 20.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       wolf:
         ridable: true
         ridable-in-water: true
         controllable: true
         attributes:
-          max_health: 8.0
+          max_health: 12.0
         default-collar-color: RED
         milk-cures-rabid-wolves: true
         spawn-rabid-chance: 0.0
@@ -1341,14 +1343,14 @@ world-settings:
         attributes:
           max_health: 40.0
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
       zombie:
         ridable: false
         ridable-in-water: false
         controllable: true
         attributes:
           max_health: 20.0
-          spawn_reinforcements: 0.1
+          spawn_reinforcements: 0.15
         jockey:
           only-babies: true
           chance: 0.05
@@ -1356,11 +1358,11 @@ world-settings:
         aggressive-towards-villager-when-lagging: false
         bypass-mob-griefing: false
         takes-damage-from-water: false
-        always-drop-exp: false
-        head-visibility-percent: 0.5
+        always-drop-exp: true
+        head-visibility-percent: 0.25
       zombie_horse:
-        ridable-in-water: true
-        can-swim: true
+        ridable-in-water: false
+        can-swim: false
         attributes:
           max_health:
             min: 15.0
@@ -1371,7 +1373,7 @@ world-settings:
           movement_speed:
             min: 0.2
             max: 0.2
-        spawn-chance: 0.1
+        spawn-chance: 0.01
         takes-damage-from-water: false
         always-drop-exp: false
       zombie_villager:
@@ -1380,7 +1382,7 @@ world-settings:
         controllable: true
         attributes:
           max_health: 20.0
-          spawn_reinforcements: 0.1
+          spawn_reinforcements: 0.15
         jockey:
           only-babies: true
           chance: 0.05
@@ -1398,16 +1400,16 @@ world-settings:
         controllable: true
         attributes:
           max_health: 20.0
-          spawn_reinforcements: 0.0
+          spawn_reinforcements: 0.15
         jockey:
           only-babies: true
           chance: 0.05
           try-existing-chickens: true
-        count-as-player-kill-when-angry: true
+        count-as-player-kill-when-angry: false
         takes-damage-from-water: false
-        always-drop-exp: false
+        always-drop-exp: true
     hunger:
-      starvation-damage: 0.5
+      starvation-damage: 1.0
     settings:
       entity:
         shared-random: true
@@ -1415,7 +1417,7 @@ world-settings:
       elytra:
         damage-per-second: 0.5
         damage-multiplied-by-speed: 0.0
-        ignore-unbreaking: false
+        ignore-unbreaking: true
         damage-per-boost:
           firework: 0
           trident: 0
@@ -1424,8 +1426,8 @@ world-settings:
       infinity-bow:
         works-without-arrows: false
         normal-arrows: true
-        spectral-arrows: true
-        tipped-arrows: true
+        spectral-arrows: false
+        tipped-arrows: false
       item:
         immune:
           cactus: []
@@ -1440,10 +1442,10 @@ world-settings:
         ender-pearl:
           damage: 3.0
           cooldown: 10
-          creative-cooldown: 20
+          creative-cooldown: 10
           endermite-spawn-chance: 0.05000000074505806
         glow_berries:
-          eat-glow-duration: 60
+          eat-glow-duration: 300
         shulker_box:
           drop-contents-when-destroyed: true
         compass:
@@ -1452,7 +1454,7 @@ world-settings:
           extinguish:
             fire: false
             candles: true
-            campfires: true
+            campfires: false
       mob-effects:
         health-regen-amount: 1.0
         minimal-health-poison-amount: 1.0
@@ -1472,20 +1474,20 @@ world-settings:
           duration: 0
           amplifier: 0
           ambient: false
-          show-particles: true
-          show-icon: true
+          show-particles: false
+          show-icon: false
         idle-timeout:
           kick-if-idle: false
           tick-nearby-entities: true
-          count-as-sleeping: false
+          count-as-sleeping: true
           update-tab-list: false
-          mobs-target: true
+          mobs-target: false
         spawn-invulnerable-ticks: 60
         invulnerable-while-accepting-resource-pack: true
         exp-dropped-on-death:
-          equation: expLevel * 7
-          maximum: 100
-        teleport-if-outside-border: true
+          equation: expTotal
+          maximum: 1000000
+        teleport-if-outside-border: false
         teleport-on-nether-ceiling-damage: false
         totem-of-undying-works-in-inventory: true
         fix-stuck-in-portal: true
@@ -1495,7 +1497,7 @@ world-settings:
         critical-damage-multiplier: 1.5
         burp-delay: 10
         burp-when-full: false
-        portal-wait-time: 40
+        portal-wait-time: 20
         creative-portal-wait-time: 1
         ridable-in-water: true
         curse-of-binding:
@@ -1512,7 +1514,7 @@ world-settings:
         trident: 1.0
         snowball: 1.0
       projectile-damage:
-        snowball: 0.1
+        snowball: -1
       shovel-turns-block-to-grass-path:
       - minecraft:coarse_dirt
       - minecraft:dirt
@@ -1536,8 +1538,8 @@ world-settings:
         set-name-visible-when-placing-with-custom-name: true
         fix-nametags: true
         can-movement-tick: true
-        can-move-in-water: true
-        can-move-in-water-over-fence: true
+        can-move-in-water: false
+        can-move-in-water-over-fence: false
         place-with-arms-visible: true
       arrow:
         movement-resets-despawn-counter: false
@@ -1549,12 +1551,12 @@ world-settings:
         do-fall-damage: false
       disable-drops-on-cramming-death: false
       entities-can-use-portals: true
-      entities-pick-up-loot-bypass-mob-griefing: false
-      fireballs-bypass-mob-griefing: false
+      entities-pick-up-loot-bypass-mob-griefing: default
+      fireballs-bypass-mob-griefing: default
       impose-teleport-restrictions-on-gateways: false
       milk-cures-bad-omen: true
       milk-clears-beneficial-effects: true
-      note-block-ignore-above: false
+      note-block-ignore-above: true
       persistent-tileentity-display-names-and-lore: true
       persistent-droppable-entity-display-names: true
       projectiles-bypass-mob-griefing: false
@@ -1562,13 +1564,13 @@ world-settings:
       entity-blindness-multiplier: 1.0
       trident-loyalty-void-return-height: 0.0
       void-damage-height: -64.0
-      void-damage-dealt: 8.0
+      void-damage-dealt: 6.0
       raid-cooldown-seconds: 0
-      animal-breeding-cooldown-seconds: 0
+      animal-breeding-cooldown-seconds: 1
       mobs-ignore-rails: false
       rain-stops-after-sleep: false
       thunder-stops-after-sleep: false
-      mob-last-hurt-by-player-time: 100
+      mob-last-hurt-by-player-time: 150
       daylight-cycle-ticks:
         daytime: 12000
         nighttime: 12000
@@ -1582,16 +1584,16 @@ world-settings:
       entity-lifespan: 0
       entity-left-handed-chance: 0.05000000074505806
       minecart:
-        max-speed: 0.8
-        place-anywhere: true
+        max-speed: 0.6
+        place-anywhere: false
         powered-rail:
-          boost-modifier: 0.12
+          boost-modifier: 0.08
         controllable:
-          enabled: true
+          enabled: false
           step-height: 1.0
           hop-boost: 1.0
           fall-damage: false
           base-speed: 0.2
           block-speed:
-            grass_block: 0.4
-            stone: 0.4
+            grass_block: 0.2
+            stone: 0.2
