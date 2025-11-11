@@ -1,3 +1,5 @@
+<div align="center">
+
 # TrueOG Network
 
 [![discord-plural](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/ma9pMYpBU6)
@@ -6,6 +8,8 @@
 [![NoSystemD](https://raw.githubusercontent.com/true-og/website/main/assets/images/logos/nossytemd.svg)](https://nosystemd.org/)
 
 ![Icon](https://github.com/true-og/website/blob/main/assets/images/logos/Logo-Alternate-Transparent.png)
+
+</div>
 
 TrueOG Network is a 100% free and open source community-oriented Minecraft server. Inspired by the past, but not stuck in it, we bring the "OG" meta to the modern minecraft ecosystem via an expansive suite of [custom plugins](https://github.com/true-og/OG-Suite). The worlds of TrueOG SMP, which are a continuation of the worlds from OG SMP Season 1, will **never** be reset.
 
@@ -19,25 +23,40 @@ With the TrueOG Bootstrap, instead of beginning your minecraft server with a bla
 
 Our admin team is structured as a unionized, democratic worker cooperative. We dedicte our in-house software to the public domain. This is done in rebellion to OG Network's selfish refusal to share their source code for OG:SMP Season 1, forcing TrueOG to be built from scratch, resulting in a long development period. We oppose TheMisterEpic's financial exploitation of children with pay-to-win gambling elements. As a worker-owned institution, we believe **community matters more than profit.**
 
-**TrueOG Network Recommends:**
+---
+
+### **Best operating systems for hosting TrueOG forks:**
 
 - [Devuan Linux](https://devuan.org/) with [OpenRC](https://itsfoss.community/t/switching-init-systems-in-devuan/11819).
 - [Void Linux](https://voidlinux.org/) with [runit](https://docs.voidlinux.org/config/services/index.html).
 
-**Platforms the TrueOG Bootstrap officially supports:**
+---
 
-| Platform             | amd64               | aarch64              | armhf                | armv7               |
-|:--------------------:|:-------------------:|:--------------------:|:--------------------:|:-------------------:|
-| **Linux**            | :heavy_check_mark:  | :heavy_check_mark:   | :heavy_check_mark:   |                     |
-| **macOS**            | :heavy_check_mark:  | :heavy_check_mark:   |                      |                     |
-| **Windows**          | :heavy_check_mark:  |                      |                      |                     |
-| **FreeBSD Family**   | :heavy_check_mark:  |                      |                      |                     |
-| **OpenBSD**          | :heavy_check_mark:  |                      |                      |                     |
-| **NetBSD**           | :heavy_check_mark:  |                      |                      |                     |
-| **Minix**            | :heavy_check_mark:  |                      |                      |                     |
-| **iOS (Jailbroken)** |                     |                      |                      | :heavy_check_mark:  |
-| **Android**          |                     | :heavy_check_mark:   |                      |                     |
+### **Platforms the TrueOG Bootstrap supports (Bash + pkgsrc capable):**
 
+| Platform             | amd64 | aarch64 | armhf | armv7 | riscv64 | ppc64 | ppc64le | mips | sparc64 |
+|----------------------|:-----:|:-------:|:-----:|:-----:|:-------:|:-----:|:-------:|:----:|:-------:|
+| **NetBSD**           | ✅     | ✅      | ✅    | ✅    | ✅      | ✅    | ✅      | ✅   | ✅      |
+| **Linux (glibc)**    | ✅     | ✅      | ✅    | ✅    | ✅      | ✅    | ✅      | ✅   | 🔧      |
+| **FreeBSD Family**   | ✅     | ✅      | ✅    | ✅    | 🔧      | ❌    | ❌      | ❌   | ❌      |
+| **OpenBSD**          | ✅     | ✅      | ✅    | ✅    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **macOS**            | ✅     | ✅      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **Solaris Family**   | ✅     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ✅      |
+| **DragonFlyBSD**     | ✅     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **Minix**            | ✅     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **WSL (Windows)**    | ✅     | 🔧      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **Cygwin (Windows)** | ✅     | 🔧      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **Android**          | ⚠️     | ⚠️      | ⚠️    | ⚠️    | ⚠️      | ❌    | ❌      | ❌   | ❌      |
+| **iOS**              | ⚠️     | ⚠️      | ⚠️    | ⚠️    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **Linux (musl)**     | ❌     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+
+| Symbol | Meaning |
+|-------|---------|
+| ✅ | Native support (bash + pkgsrc bootstrap). |
+| ⚠️ | Requires workaround (proot/chroot or jailbreak). |
+| 🔧 | Depends on rare hardware or non-standard config. |
+| ❌ | Unsupported or else platform does not exist. |
+
+---
 
 *ad astra per aspera*
-
