@@ -5,14 +5,13 @@
 # If you need help with the configuration or have any questions related to Purpur,
 # join us in our Discord guild.
 #
-# Website: https://purpurmc.org
-# Docs: https://purpurmc.org/docs
-# License: https://raw.githubusercontent.com/true-og/Purpur/refs/heads/ver/1.19.4/LICENSE
+# Website: https://purpurmc.org 
+# Docs: https://purpurmc.org/docs 
 
 verbose: false
 settings:
   messages:
-    cannot-ride-mob: <red>ERROR: That mob is not ridable.
+    cannot-ride-mob: '<red>ERROR: That mob is not ridable.'
     afk-broadcast-away: ''
     afk-broadcast-back: ''
     afk-broadcast-use-display-name: false
@@ -20,17 +19,20 @@ settings:
     afk-tab-list-suffix: ''
     credits-command-output: <dark_purple>%s defeated the ender dragon. <green>GG<dark_purple>!
     demo-command-output: ''
-    ping-command-output: <green>%s's ping is: <yellow>%sms
+    ping-command-output: '<green>%s''s ping is: <yellow>%sms'
     ram-command-output: '<green>RAM Used: <yellow><used>/<xmx> (<percent>)'
     rambar-command-output: <gold>RAM bar toggled <onoff> for <target>.
     tpsbar-command-output: <gold>TPS bar toggled <onoff> for <target>.
-    dont-run-with-scissors: <red><italic>Don't run with scissors, you pizza faced cinderblock!
-    uptime-command-output: <green>Server uptime is: <uptime>
+    dont-run-with-scissors: <red><italic>Don't run with scissors, you pizza faced
+      cinderblock!
+    uptime-command-output: '<green>Server uptime is: <uptime>'
     unverified-username: default
     sleep-skipping-night: default
-    sleeping-players-percent: '<gold>At least 50% of online players must be sleeping or AFK.'
+    sleeping-players-percent: <gold>At least 50% of online players must be sleeping
+      or AFK.
     death-message:
-      run-with-scissors: <player> slipped and stabbed themselves through the heart with their own scissors.
+      run-with-scissors: <player> slipped and stabbed themselves through the heart
+        with their own scissors.
       stonecutter: <player> tried to use a sawblade as a foot massager.
   clamp-attributes: true
   server-mod-name: Purpur 1.19.4
@@ -47,7 +49,7 @@ settings:
   lagging-threshold: 18.0
   command:
     rambar:
-      title: <green>RAM Usage: <yellow><used>/<xmx> (<percent>)</yellow>
+      title: '<green>RAM Usage: <yellow><used>/<xmx> (<percent>)</yellow>'
       overlay: NOTCHED_20
       progress-color:
         good: GREEN
@@ -60,7 +62,6 @@ settings:
       tick-interval: 20
     tpsbar:
       title: <gray>TPS<yellow>:</yellow> <tps> MSPT<yellow>:</yellow> <mspt> Ping<yellow>:</yellow>
-        <ping>ms
       overlay: NOTCHED_20
       fill-mode: MSPT
       progress-color:
@@ -187,7 +188,6 @@ settings:
       distance: 0.5
     minecraft:orange_bed:
       distance: 0.5
-    minecraft:slime_block:
     damage: 0.0
 config-version: 32
 world-settings:
