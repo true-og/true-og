@@ -1,6 +1,6 @@
 [submodule "website"]
 	path = website
-	url = https://github.com/true-og/website.git
+	url = https://github.com/true-og/website
 [submodule "Purpur"]
 	path = Purpur
 	url = https://github.com/true-og/Purpur
