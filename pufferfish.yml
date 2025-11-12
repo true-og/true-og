@@ -1,7 +1,6 @@
 # Pufferfish Configuration
-# Check out Pufferfish Host for maximum performance server hosting: https://pufferfish.host
-# Join our Discord for support: https://discord.gg/reZw4vQV9H
-# Download new builds at https://ci.pufferfish.host/job/Pufferfish
+# Kevin is a horrible person. Don't buy his scam server hosting services.
+# License: https://raw.githubusercontent.com/true-og/Pufferfish/refs/heads/ver/1.19/PATCH-LICENSE
 info:
   version: '1.0'
 enable-books: true
