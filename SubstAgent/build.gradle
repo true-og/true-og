@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+group = 'nl.skbotnl'
+version = 'a93eaa3f10'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.javassist:javassist:3.29.2-GA'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.jar {
+    archiveBaseName.set('SubstAgent')
+    archiveVersion.set(version)
+    manifest {
+        attributes(
+                'Premain-Class': 'nl.skbotnl.substagent.SubstAgent',
+                'Can-Redefine-Classes': 'true',
+                'Implementation-Version': version
+        )
+    }
+}

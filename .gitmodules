@@ -16,6 +16,3 @@
 [submodule "plugin-suites/Third-Party"]
 	path = plugin-suites/Third-Party
 	url = https://github.com/true-og/Third-Party
-[submodule "SubstAgent"]
-	path = SubstAgent
-	url = https://github.com/true-og/SubstAgent
