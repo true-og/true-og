@@ -1,13 +1,13 @@
 # This is the world defaults configuration file for Paper.
 # As you can see, there's a lot to configure. Some options may impact gameplay, so use
 # with caution, and make sure you know what each option does before configuring.
-#
+# 
 # If you need help with the configuration or have any questions related to Paper,
 # join us in our Discord or check the docs page.
-#
+# 
 # Configuration options here apply to all worlds, unless you specify overrides inside
 # the world-specific config file inside each world folder.
-#
+# 
 # Docs: https://docs.papermc.io/
 # Discord: https://discord.gg/papermc
 # Website: https://papermc.io/
@@ -19,26 +19,26 @@ anticheat:
     enabled: true
     engine-mode: 1
     hidden-blocks:
-      - diamond_ore
-      - deepslate_diamond_ore
-      - emerald_ore
-      - deepslate_emerald_ore
-      - gold_ore
-      - deepslate_gold_ore
-      - lapis_ore
-      - deepslate_lapis_ore
-      - mossy_cobblestone
-      - spawner
-      - chest
-      - ender_chest
-      - shulker_box
-      - redstone_ore
-      - deepslate_redstone_ore
+    - diamond_ore
+    - deepslate_diamond_ore
+    - emerald_ore
+    - deepslate_emerald_ore
+    - gold_ore
+    - deepslate_gold_ore
+    - lapis_ore
+    - deepslate_lapis_ore
+    - mossy_cobblestone
+    - spawner
+    - chest
+    - ender_chest
+    - shulker_box
+    - redstone_ore
+    - deepslate_redstone_ore
     lava-obscures: true
     max-block-height: 128
     replacement-blocks:
-      - stone
-      - deepslate
+    - stone
+    - deepslate
     update-radius: 2
     use-permission: false
   obfuscation:
@@ -47,7 +47,7 @@ anticheat:
       hide-itemmeta: false
       hide-itemmeta-with-visual-effects: false
 chunks:
-  auto-save-interval: 6000
+  auto-save-interval: '6000'
   delay-chunk-unloads-by: 10s
   entity-per-chunk-save-limit:
     arrow: 200
@@ -215,7 +215,7 @@ environment:
   treasure-maps:
     enabled: true
     find-already-discovered:
-      loot-tables: false
+      loot-tables: 'false'
       villager-trade: true
   water-over-lava-flow-speed: 5
 feature-seeds:

@@ -12,6 +12,7 @@
 # Discord: https://discord.gg/papermc
 # Website: https://papermc.io/
 # License: https://raw.githubusercontent.com/true-og/Paper/refs/heads/main/LICENSE.md
+
 _version: 28
 chunk-loading:
   autoconfig-send-distance: true
@@ -56,8 +57,8 @@ logging:
   use-rgb-for-named-text-colors: true
 messages:
   kick:
-    authentication-servers-down: '<red>ERROR: There was a problem connecting to the Mojang
-      authentication servers.'
+    authentication-servers-down: '<red>ERROR: There was a problem connecting to the
+      Mojang authentication servers.'
     connection-throttle: '<red>KICKED from TrueOG: You tried to reconnect too quickly!
       Wait a few seconds before reconnecting.'
     flying-player: '<red>KICKED from TrueOG: You are suspected of fly hacking!'
@@ -83,14 +84,14 @@ packet-limiter:
     max-packet-rate: 900.0
   kick-message: <red><lang:disconnect.exceeded_packet_rate>
   overrides:
-    ServerboundPlaceRecipePacket:
-      action: DROP
-      interval: 4.0
-      max-packet-rate: 5.0
     ServerboundKeepAlivePacket:
       action: DROP
       interval: 10.0
       max-packet-rate: 40.0
+    ServerboundPlaceRecipePacket:
+      action: DROP
+      interval: 4.0
+      max-packet-rate: 5.0
 player-auto-save:
   max-per-tick: -1
   rate: -1
