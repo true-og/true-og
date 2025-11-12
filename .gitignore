@@ -4,15 +4,14 @@ banned-players.json
 cache/
 crash-reports/
 eula.txt
-pufferfish.yml
 help.yml
+hs_*
 libraries/
 logs/
 ops.json
 permissions.yml
 plugins/
 purpur-*.jar
-server.properties
 usercache.json
 version_history.json
 whitelist.json
