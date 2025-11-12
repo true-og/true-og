@@ -32,30 +32,48 @@ Our admin team is structured as a unionized, democratic worker cooperative. We d
 
 ---
 
-### **Platforms the TrueOG Bootstrap supports (Bash + pkgsrc capable):**
+**Platforms the TrueOG Bootstrap supports (Bash + pkgsrc capable):**
+
+*Don't see your favorite OS listed? Just ask us on [Discord](https://discord.gg/ma9pMYpBU6) in #plugin-help or submit a pull request to update the platform support chart and we will see what we can do...*
 
 | Platform             | amd64 | aarch64 | armhf | armv7 | riscv64 | ppc64 | ppc64le | mips | sparc64 |
 |----------------------|:-----:|:-------:|:-----:|:-----:|:-------:|:-----:|:-------:|:----:|:-------:|
 | **NetBSD**           | ✅     | ✅      | ✅    | ✅    | ✅      | ✅    | ✅      | ✅   | ✅      |
-| **Linux (glibc)**    | ✅     | ✅      | ✅    | ✅    | ✅      | ✅    | ✅      | ✅   | 🔧      |
-| **FreeBSD Family**   | ✅     | ✅      | ✅    | ✅    | 🔧      | ❌    | ❌      | ❌   | ❌      |
-| **OpenBSD**          | ✅     | ✅      | ✅    | ✅    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **macOS**            | ✅     | ✅      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **Solaris Family**   | ✅     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ✅      |
-| **DragonFlyBSD**     | ✅     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **Minix**            | ✅     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **WSL (Windows)**    | ✅     | 🔧      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **Cygwin (Windows)** | ✅     | 🔧      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **Android**          | ⚠️     | ⚠️      | ⚠️    | ⚠️    | ⚠️      | ❌    | ❌      | ❌   | ❌      |
-| **iOS**              | ⚠️     | ⚠️      | ⚠️    | ⚠️    | ❌      | ❌    | ❌      | ❌   | ❌      |
-| **Linux (musl)**     | ❌     | ❌      | ❌    | ❌    | ❌      | ❌    | ❌      | ❌   | ❌      |
+| **Linux (glibc)**    | ✅     | ✅      | ✅    | ✅    | ✅      | ✅    | ✅      | ✅   | 🔧¹     |
+| **FreeBSD Family**   | ✅     | ✅      | ✅    | ✅    | 🔧²     | ❌³   | ❌³     | ❌³  | ❌³     |
+| **OpenBSD**          | ✅     | ✅      | ✅    | ✅    | ❌³     | ❌³   | ❌³     | ❌³  | ❌³     |
+| **Solaris Family**   | ✅     | 🚫      | 🚫    | 🚫    | 🚫      | ❌⁴   | ❌⁴     | ❌⁴  | ✅      |
+| **macOS**            | ✅     | ✅      | 🚫    | 🚫    | 🚫      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **DragonFlyBSD**     | ✅     | 🚫      | 🚫    | 🚫    | 🚫      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **Minix**            | ✅     | 🚫      | 🚫    | 🚫    | 🚫      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **WSL (Windows)**    | ✅     | 🔧⁵      | 🚫    | 🚫    | 🚫      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **Cygwin (Windows)** | ✅     | 🔧⁵      | 🚫    | 🚫    | 🚫      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **Android**          | ⚠️     | ⚠️      | ⚠️    | ⚠️    | ⚠️      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **iOS**              | ⚠️     | ⚠️      | ⚠️    | ⚠️    | 🚫      | 🚫    | 🚫      | 🚫   | 🚫      |
+| **Linux (musl)**     | ❌⁶    | ❌⁶     | ❌⁶   | ❌⁶   | ❌⁶     | ❌⁶   | ❌⁶     | ❌⁶  | ❌⁶     |
+
+---
+
+### Legend
 
 | Symbol | Meaning |
-|-------|---------|
-| ✅ | Native support (bash + pkgsrc bootstrap). |
-| ⚠️ | Requires workaround (proot/chroot or jailbreak). |
-| 🔧 | Depends on rare hardware or non-standard config. |
-| ❌ | Unsupported or else platform does not exist. |
+|:------:|:--------|
+| ✅ | Native support (bash + pkgsrc bootstrap) |
+| ⚠️ | Requires hacking (proot/chroot/jailbreak) |
+| 🔧 | Depends on rare hardware or non-standard config |
+| ❌ | Platform **exists** but is **not supported** |
+| 🚫 | Platform combination **does not exist** |
+
+---
+
+### Architectures with Limited or Specialized Support
+
+¹ **Linux on SPARC (glibc)** — pkgsrc builds likely to fail due to missing toolchain components.
+² **FreeBSD riscv64** — The kernel runs well on riscv64, but userland packaging is incomplete.
+³ **FreeBSD/OpenBSD on POWER, SPARC, or MIPS** — technically possible, but not well supported.
+⁴ **Solaris on POWER or MIPS** — No complete runtime environment for that architecture/OS exists.
+⁵ **Windows ARM64 (WSL/Cygwin)** — Can run basic Bash environments, but lacks a full POSIX layer.
+⁶ **Linux (musl)** — pkgsrc does not play nice with musl.
 
 ---
 
