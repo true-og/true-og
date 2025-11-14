@@ -4,6 +4,8 @@
 
 # Stage 5: Assemble server.
 
+#!/usr/bin/env bash
+
 # Source the current directory.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -13,8 +15,18 @@ source "$SCRIPT_DIR/bootstrap/.sdkman/bin/sdkman-init.sh"
 # Use the desired Java version from the self-contained SDKMAN.
 sdk use java 17.0.9-graalce
 
-# Source SubstAgent for environment variable support in config files.
-AGENT_JAR="$SCRIPT_DIR/SubstAgent/build/libs/SubstAgent-70c1f5d464.jar"
+# Determine the SubstAgent commit hash and jar path dynamically.
+SUBSTAGENT_DIR="$SCRIPT_DIR/SubstAgent"
+SUBSTAGENT_HASH="$(git -C "$SUBSTAGENT_DIR" rev-parse --short=10 HEAD)"
+
+AGENT_JAR="$SUBSTAGENT_DIR/build/libs/SubstAgent-${SUBSTAGENT_HASH}.jar"
+
+# Exit if SubstAgent was not found.
+if [[ ! -f "$AGENT_JAR" ]]; then
+  echo "SubstAgent jar not found: $AGENT_JAR" >&2
+  echo "Did you run the build for SubstAgent at commit $SUBSTAGENT_HASH?" >&2
+  exit 1
+fi
 
 # Auto-restarting optimized minecraft java server loop.
 while true; do
