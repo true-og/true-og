@@ -6,8 +6,8 @@
 # join us in our Discord guild.
 #
 # Website: https://purpurmc.org 
-# Docs: https://purpurmc.org/docs
-# License: https://raw.githubusercontent.com/true-og/Purpur/refs/heads/ver/1.19.4/LICENSE 
+# Docs: https://purpurmc.org/docs 
+# License: https://raw.githubusercontent.com/true-og/Purpur/refs/heads/ver/1.19.4/LICENSE
 
 verbose: false
 settings:
@@ -114,7 +114,7 @@ settings:
       remove-attributes: false
       remove-name-and-lore: false
     cave_vines:
-      max-growth-age: 50
+      max-growth-age: 25
     kelp:
       max-growth-age: 25
     twisting_vines:
@@ -189,7 +189,6 @@ settings:
       distance: 0.5
     minecraft:orange_bed:
       distance: 0.5
-    damage: 0.0
 config-version: 32
 world-settings:
   default:
