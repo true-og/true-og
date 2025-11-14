@@ -18,4 +18,5 @@
 	url = https://github.com/true-og/Third-Party
 [submodule "SubstAgent"]
 	path = SubstAgent
-	url = https://github.com/true-og/SubstAgent
+	url = https://github.com/NotAlexNoyle/SubstAgent
+	branch = main
