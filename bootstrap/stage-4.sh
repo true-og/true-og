@@ -134,12 +134,12 @@ if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] || [ ! -f "$FINAL_JAR_PATH" ]; then
     spinner $! "Applying patches"
 
     (
-      ./gradlew build >/dev/null 2>&1
+      ./gradlew eclipse build >/dev/null 2>&1
     ) &
     spinner $! "Building Purpur"
 
     (
-      ./gradlew createMojmapBundlerJar >/dev/null 2>&1
+      ./gradlew createReobfPaperclipJar >/dev/null 2>&1
     ) &
     spinner $! "Creating Mojmap Bundler Jar"
 
@@ -150,7 +150,7 @@ if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] || [ ! -f "$FINAL_JAR_PATH" ]; then
 
     echo "Copying final JAR to '$FINAL_JAR_PATH'..."
     (
-      cp build/libs/purpur-bundler-*-mojmap.jar "$FINAL_JAR_PATH" 2>/dev/null
+      cp build/libs/purpur-paperclip-1.19.4-R0.1-SNAPSHOT-reobf.jar "$FINAL_JAR_PATH" 2>/dev/null
     ) &
     spinner $! "Copying JAR"
 
@@ -158,69 +158,6 @@ if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] || [ ! -f "$FINAL_JAR_PATH" ]; then
 else
     echo "No changes detected and 'purpur-1.19.4.jar' already exists. Skipping build."
 fi
-
-###############################################################################
-# Step 4: Copy startup script to same directory as the Purpur jar
-###############################################################################
-echo "Copying 'start.sh' into the Purpur jar's folder..."
-(
-  cat << 'EOF' > "$WORK_DIR/../start.sh"
-#!/usr/bin/env bash
-# This is free and unencumbered software released into the public domain.
-# Author: NotAlexNoyle (admin@true-og.net)
-
-# Stage 5: Assemble server.
-
-# Source the self-contained SDKMAN installation
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/bootstrap/.sdkman/bin/sdkman-init.sh"
-
-# Use the desired Java version from the self-contained SDKMAN
-sdk use java 17.0.9-graalce
-
-# Auto-restart loop
-while [ true ]; do
-    echo "Starting TrueOG..."
-    java -Xms43008M -Xmx43008M \
-         -Dterminal.jline=false \
-         -XX:+UseG1GC \
-         -Dpaper.playerconnection.keepalive=60 \
-         -XX:+UnlockDiagnosticVMOptions \
-         -XX:+DebugNonSafepoints \
-         -XX:+ParallelRefProcEnabled \
-         -XX:MaxGCPauseMillis=200 \
-         -XX:+UnlockExperimentalVMOptions \
-         -XX:+DisableExplicitGC \
-         -XX:+AlwaysPreTouch \
-         -XX:G1HeapWastePercent=5 \
-         -XX:G1MixedGCCountTarget=4 \
-         -XX:G1MixedGCLiveThresholdPercent=90 \
-         -XX:G1RSetUpdatingPauseTimePercent=5 \
-         -XX:SurvivorRatio=32 \
-         -XX:+PerfDisableSharedMem \
-         -XX:MaxTenuringThreshold=1 \
-         -XX:G1NewSizePercent=30 \
-         -XX:G1MaxNewSizePercent=40 \
-         -XX:G1HeapRegionSize=8M \
-         -XX:G1ReservePercent=20 \
-         -XX:InitiatingHeapOccupancyPercent=15 \
-         -Dusing.aikars.flags=https://mcflags.emc.gs \
-         -Daikars.new.flags=true \
-         --add-modules=jdk.incubator.vector \
-         -jar purpur-1.19.4.jar nogui
-
-    for i in 5 4 3 2 1; do
-        printf 'Server restarting in %s... (press CTRL-C to exit)\n' "${i}"
-        sleep 1
-    done
-done
-EOF
-
-  chmod +x "$WORK_DIR/../start.sh"
-) &
-spinner $! "Writing startup script"
-
-cd "$WORK_DIR" || exit 1
 
 ###############################################################################
 # Step 5: Build report
