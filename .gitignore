@@ -1,34 +1,31 @@
-# Non-redistributable server files.
-banned-ips.json
-banned-players.json
+# Instance-specific server generated files.
 cache/
 crash-reports/
-eula.txt
-help.yml
-hs_*
 libraries/
 logs/
-ops.json
-permissions.yml
 plugins/
-purpur-*.jar
+plugins-disabled/
+world/
+world_old/
+world_nether/
+world_nether_old/
+world_the_end/
+world_the_end_old/
+banned-ips.json
+banned-players.json
+eula.txt
+hs_*
+ops.json
+purpur-1.19.4.jar
 usercache.json
 version_history.json
 whitelist.json
-world
-world_nether
-world_nether_old/
-world_old/
-world_the_end
-world_the_end_old/
-
 # TrueOG Bootstrap internals.
 bootstrap/.m2
 bootstrap/.gradle
 bootstrap/.sdkman
 .gradle/
 .env
-
-# Server databases.
+# Non-redistributable server databases.
 databases/*.txt
 databases/databases.tar
