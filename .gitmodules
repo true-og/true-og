@@ -19,3 +19,24 @@
 [submodule "SubstAgent"]
 	path = SubstAgent
 	url = https://github.com/true-og/SubstAgent
+[submodule "databases/FerretDB"]
+	path = databases/FerretDB
+	url = https://github.com/true-og/FerretDB
+[submodule "databases/KeyDB"]
+	path = databases/KeyDB
+	url = https://github.com/true-og/KeyDB
+[submodule "intranet/gitea"]
+	path = intranet/gitea
+	url = https://github.com/true-og/gitea
+[submodule "intranet/JMusicBot"]
+	path = intranet/JMusicBot
+	url = https://github.com/true-og/JMusicBot
+[submodule "intranet/wekan"]
+	path = intranet/wekan
+	url = https://github.com/true-og/wekan
+[submodule "intranet/filebrowser-quantum"]
+	path = intranet/filebrowser-quantum
+	url = https://github.com/true-og/filebrowser
+[submodule "intranet/GlitchTip"]
+	path = intranet/GlitchTip
+	url = https://github.com/true-og/GlitchTip
