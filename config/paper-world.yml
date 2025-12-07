@@ -2,5 +2,6 @@
 # This file may start empty but can be filled with settings to override ones in the config/paper-world-defaults.yml
 # 
 # World: world (minecraft:overworld)
+# License: https://raw.githubusercontent.com/true-og/Paper/refs/heads/main/LICENSE.md
 
 _version: 30

@@ -267,7 +267,7 @@ scoreboards:
 spawn:
   allow-using-signs-inside-spawn-protection: false
   keep-spawn-loaded: true
-  keep-spawn-loaded-range: 120
+  keep-spawn-loaded-range: 12
 tick-rates:
   behavior:
     villager:
