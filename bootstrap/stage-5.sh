@@ -158,6 +158,7 @@ for prefix in "${build_order[@]}"; do
         # Exclude specific plugins.
         if [[ "$plugin_key" == "OG-Suite/Template-OG" || \
               "$plugin_key" == "OG-Suite/KotlinTemplate-OG" || \
+			  "$plugin_Key" == "OG-Suite/GxUI-OG" || \
               "$plugin_key" == "OG-Suite/plugins" || \
               "$plugin_key" == "Hard-Forks/plugins" || \
               "$plugin_key" == "Soft-Forks/plugins" || \
