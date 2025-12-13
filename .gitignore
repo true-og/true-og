@@ -32,3 +32,7 @@ bootstrap/.sdkman
 # Non-redistributable server databases.
 databases/*.txt
 databases/databases.tar
+
+# Temporarily ignore maps
+maps/
+HB1-hub/

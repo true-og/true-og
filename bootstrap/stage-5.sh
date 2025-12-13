@@ -155,12 +155,13 @@ for prefix in "${build_order[@]}"; do
         plugin_name="$(basename "$dir")"
         plugin_key="${prefix}/${plugin_name}"
 
-        # Exclude specific plugins.
+        # Exclude plugins that don't belong on the running server.
         if [[ "$plugin_key" == "OG-Suite/Template-OG" || \
               "$plugin_key" == "OG-Suite/KotlinTemplate-OG" || \
 			  "$plugin_Key" == "OG-Suite/GxUI-OG" || \
               "$plugin_key" == "OG-Suite/plugins" || \
-              "$plugin_key" == "Hard-Forks/plugins" || \
+			  "$plugin_key" == "Hard-Forks/MCShared-OG" || \
+			  "$plugin_key" == "Hard-Forks/plugins" || \
               "$plugin_key" == "Soft-Forks/plugins" || \
               "$plugin_key" == "Third-Party/plugins" ]]; then
             continue
