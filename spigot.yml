@@ -13,18 +13,18 @@
 messages:
   whitelist: |
     [§2True§4OG§r] §6Temporarily Closed §4:(
-    §4♥§6Maintenance Mode§4♥
+    §4♥ §6Maintenance Mode §4♥
     §6Server will return soon.
   unknown-command: Unknown command. Type "/help" for help.
   server-full: |
-    [§2True§4OG§r] §6The server is full! §4:(
-    §4♥§c50 §6Players Currently Connected§4♥
+    [§2True§4OG§r] §6The server is full! §e:(
+    §4♥ §c50 §6Players Currently Connected §4♥
   outdated-client: |
-    [§2True§4OG§r] §6Outdated client! §4:(
-    §4♥§6Please re-log using 1.8-1.20.4§4♥
+    [§2True§4OG§r] §6Outdated client! §e:(
+    §4♥ §6Please re-log using 1.8-1.20.4 §4♥
   outdated-server: |
-    [§2True§4OG§r] §6Client too new! §4:(
-    §4♥§6Please downgrade to 1.8-1.20.4§4♥
+    [§2True§4OG§r] §6Client too new! §e:(
+    §4♥ §6Please downgrade to 1.8-1.20.4 §4♥
   restart: |
     [§2True§4OG§r] §6Server is restarting... §4♥
 advancements:
