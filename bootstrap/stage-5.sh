@@ -39,6 +39,17 @@ WORK_DIR="$(pwd)"
 GRADLE_USER_HOME="$PROJECT_ROOT/.gradle"
 SELF_MAVEN_LOCAL_REPO="$WORK_DIR/.m2/repository"
 
+# Per-plugin output directory overrides.
+# Default: plugins/
+# Special case: ArenaRegen-OG -> plugins/Duels/extensions/
+plugin_output_dir() {
+    local plugin_name="$1"
+    case "$plugin_name" in
+        ArenaRegen-OG) echo "$OUTPUT_DIR/Duels/extensions" ;;
+        *)            echo "$OUTPUT_DIR" ;;
+    esac
+}
+
 declare -A plugin_commit_hash_before
 declare -A plugin_commit_hash_after
 declare -A new_commit_hashes
@@ -197,8 +208,10 @@ progress_bar() {
     for ((i = filled_length; i < bar_length; i++)); do
         bar+=" "
     done
-    local formatted_subfolder=$(printf "%-12.12s" "$subfolder")
-    local formatted_project_name=$(printf "%-20.20s" "$project_name")
+    local formatted_subfolder
+    local formatted_project_name
+    formatted_subfolder=$(printf "%-12.12s" "$subfolder")
+    formatted_project_name=$(printf "%-20.20s" "$project_name")
     printf "\r\033[KBuilding %s -> %s [%-20s] %3d%%" "$formatted_subfolder" "$formatted_project_name" "$bar" "$progress"
 }
 
@@ -312,6 +325,7 @@ for plugin_key in "${plugin_keys[@]}"; do
     prefix="${plugin_key%%/*}"
     plugin_name="${plugin_key##*/}"
     dir="${plugin_dirs[$plugin_key]}"
+    dest_dir="$(plugin_output_dir "$plugin_name")"
 
     progress_bar "$prefix" "$plugin_name"
 
@@ -323,7 +337,7 @@ for plugin_key in "${plugin_keys[@]}"; do
         jar_exists=false
         plugin_names=("$plugin_name")
 
-        for jar_file in "$OUTPUT_DIR"/*.jar; do
+        for jar_file in "$dest_dir"/*.jar; do
             base_name=$(basename "$jar_file" .jar)
             for name in "${plugin_names[@]}"; do
                 remaining="${base_name#$name}"
@@ -425,15 +439,15 @@ for plugin_key in "${plugin_keys[@]}"; do
                 preferred_jar=$(select_preferred_jar "${sub_built_jars[@]}")
                 preferred_jar_name="$(basename "$preferred_jar")"
 
-                mkdir -p "$OUTPUT_DIR/old"
-                for old_jar in "$OUTPUT_DIR/"*.jar; do
+                mkdir -p "$dest_dir/old"
+                for old_jar in "$dest_dir/"*.jar; do
                     if [[ -f "$old_jar" ]]; then
                         old_jar_name=$(basename "$old_jar" .jar)
                         for name in "${plugin_names[@]}"; do
                             remaining="${old_jar_name#$name}"
                             if [[ "$remaining" == "" || "$remaining" =~ ^[-\.][0-9] ]]; then
                                 if [[ "$old_jar_name.jar" != "$preferred_jar_name" ]]; then
-                                    mv "$old_jar" "$OUTPUT_DIR/old/"
+                                    mv "$old_jar" "$dest_dir/old/"
                                 fi
                                 break
                             fi
@@ -441,7 +455,8 @@ for plugin_key in "${plugin_keys[@]}"; do
                     fi
                 done
 
-                cp "$preferred_jar" "$OUTPUT_DIR/" 2>/dev/null
+                mkdir -p "$dest_dir"
+                cp "$preferred_jar" "$dest_dir/" 2>/dev/null
                 build_results["$plugin_key"]="built"
             else
                 echo "Error: No JAR files found after building plugin '$plugin_name'." >> "$build_log"
@@ -554,4 +569,3 @@ if $halted; then
     echo ""
     echo "WARNING: Build process was halted manually!"
 fi
-
