@@ -64,15 +64,62 @@ Our admin team is structured as a unionized, democratic worker cooperative. We d
 | ❌ | Platform **exists** but is **not supported** |
 | 🚫 | Platform combination **does not exist** |
 
----
+### To download the full TrueOG Network stack
+
+> git clone https://github.com/true-og/true-og
+
+> cd true-og
+
+> git submodule update --force --recursive --init
+
+### Git Badges
+
+https://intergrav.github.io/devins-badges-docs/badges/cozy/
+
+https://badger.worldwidepixel.ca/
+
+### IDE Plugins for TrueOG Plugin Development
+
+[Eclipse](https://eclipseide.org/) (FOSS) or [MyEclipse](https://www.genuitec.com/products/myeclipse/) (Proprietary):
+
+- AspectJ Development Tools https://marketplace.eclipse.org/content/aspectj-development-tools
+
+- Beyond CVS https://beyondcvs.sourceforge.net/
+
+- Checkstyle https://marketplace.eclipse.org/content/checkstyle-plug
+
+- Enhanced Kotlin https://marketplace.eclipse.org/content/enhanced-kotlin-eclipse
+
+- JSparrow: https://marketplace.eclipse.org/content/jsparrow-java-refactoring-and-java-code-analyzer
+
+- Kotlin https://marketplace.eclipse.org/content/kotlin-plugin-eclipse
+
+- Lombok https://projectlombok.org/setup/eclipse
+
+[IntelliJ IDEA](https://www.jetbrains.com/idea/) (FOSS) or [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/buy/?section=personal&billing=monthly) (Proprietary):
+
+- Checkstyle https://plugins.jetbrains.com/plugin/1065-checkstyle-idea
+
+- Classic UI https://plugins.jetbrains.com/plugin/24468-classic-ui
+
+- Lombok https://projectlombok.org/setup/intellij
+
+- Minecraft Development https://plugins.jetbrains.com/plugin/8327-minecraft-development
+
+- Multi Project Workspace https://plugins.jetbrains.com/plugin/24765-multi-project-workspace
 
 ### Architectures with Limited or Specialized Support
 
 ¹ **Linux on SPARC (glibc)** — pkgsrc builds likely to fail due to missing toolchain components.
+
 ² **FreeBSD riscv64** — The kernel runs well on riscv64, but userland packaging is incomplete.
+
 ³ **FreeBSD/OpenBSD on POWER, SPARC, or MIPS** — technically possible, but not well supported.
+
 ⁴ **Solaris on POWER or MIPS** — No complete runtime environment for that architecture/OS exists.
+
 ⁵ **Windows ARM64 (WSL/Cygwin)** — Can run basic Bash environments, but lacks a full POSIX layer.
+
 ⁶ **Linux (musl)** — pkgsrc does not play nice with musl.
 
 ---
