@@ -169,7 +169,7 @@ for prefix in "${build_order[@]}"; do
         # Exclude plugins that don't belong on the running server.
         if [[ "$plugin_key" == "OG-Suite/Template-OG" || \
               "$plugin_key" == "OG-Suite/KotlinTemplate-OG" || \
-			  "$plugin_Key" == "OG-Suite/GxUI-OG" || \
+			  "$plugin_key" == "OG-Suite/GxUI-OG" || \
               "$plugin_key" == "OG-Suite/plugins" || \
 			  "$plugin_key" == "Hard-Forks/MCShared-OG" || \
 			  "$plugin_key" == "Hard-Forks/plugins" || \
