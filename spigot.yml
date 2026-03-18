@@ -9,24 +9,36 @@
 #
 # Discord: https://www.spigotmc.org/go/discord
 # Forums: http://www.spigotmc.org/
+
+# This is the main configuration file for Spigot.
+# As you can see, there's tons to configure. Some options may impact gameplay, so use
+# with caution, and make sure you know what each option does before configuring.
+# For a reference for any variable inside this file, check out the Spigot wiki at
+# http://www.spigotmc.org/wiki/spigot-configuration/
+#
+# If you need help with the configuration or have any questions related to Spigot,
+# join us at the Discord or drop by our forums and leave a post.
+#
+# Discord: https://www.spigotmc.org/go/discord
+# Forums: http://www.spigotmc.org/
 # License: https://raw.githubusercontent.com/true-og/Spigot-API/refs/heads/master/LICENCE.txt
 messages:
   whitelist: |
-    [§2True§4OG§r] §6Temporarily Closed §4:(
+    [§aTrue§cOG§r] §6Temporarily Closed §4:(
     §4♥ §6Maintenance Mode §4♥
     §6Server will return soon.
   unknown-command: Unknown command. Type "/help" for help.
   server-full: |
-    [§2True§4OG§r] §6The server is full! §e:(
+    [§aTrue§cOG§r] §6The server is full! §e:(
     §4♥ §c50 §6Players Currently Connected §4♥
   outdated-client: |
-    [§2True§4OG§r] §6Outdated client! §e:(
-    §4♥ §6Please re-log using 1.8-1.20.4 §4♥
+    [§aTrue§cOG§r] §6Outdated client! §e:(
+    §4♥ §6Please re-log using 1.8.0-1.21.11 §4♥
   outdated-server: |
-    [§2True§4OG§r] §6Client too new! §e:(
-    §4♥ §6Please downgrade to 1.8-1.20.4 §4♥
+    [§aTrue§cOG§r] §6Client too new! §e:(
+    §4♥ §6Please downgrade to 1.8.0-1.21.11 §4♥
   restart: |
-    [§2True§4OG§r] §6Server is restarting... §4♥
+    [§aTrue§cOG§r] §6Server is restarting... §4♥
 advancements:
   disable-saving: false
   disabled:

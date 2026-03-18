@@ -35,3 +35,5 @@ databases/databases.tar
 # Temporarily ignore maps
 maps/
 HB1-hub/
+# Yamipa-OG cache
+map-color-cache.dat
