@@ -21,9 +21,9 @@ settings:
   query-plugins: true
   deprecated-verbose: default
   shutdown-message: |
-    §7[§2True§4OG §eNetwork§7] §6Crashed §4:(
-    §4♥§6Press §4F §6to pay respects§4♥
-    §6Server should restart momentarily...
+    §7[§l§aTrue§cOG §r§eNetwork§7] §cCrashed &6:(
+    §4♥ §6Press §4F §6to pay respects §4♥
+    §6The server should restart soon...
   minimum-api: none
   use-map-color-cache: true
 spawn-limits:
