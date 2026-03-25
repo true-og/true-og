@@ -21,7 +21,7 @@ settings:
   query-plugins: true
   deprecated-verbose: default
   shutdown-message: |
-    §7[§l§aTrue§cOG §r§eNetwork§7] §cCrashed &6:(
+    §7[§l§aTrue§cOG §r§eNetwork§7] §ecWent Down! §c:(
     §4♥ §6Press §4F §6to pay respects §4♥
     §6The server should restart soon...
   minimum-api: none
