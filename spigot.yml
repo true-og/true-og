@@ -157,6 +157,8 @@ world-settings:
     verbose: false
   worldeditregentempworld:
     verbose: false
+  zzdummyzz:
+    verbose: false
 settings:
   timeout-time: 60
   restart-on-crash: true
