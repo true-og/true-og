@@ -4,6 +4,8 @@
 
 # TrueOG Bootstrap Stage 5: Builds all TrueOG Plugins and puts them into a folder called server/ in the current directory.
 
+set -o pipefail
+
 # Display ASCII art and wait for user input to start
 cat << "EOF"
 

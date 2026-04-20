@@ -4,6 +4,8 @@
 
 # TrueOG Bootstrap Stage 3: Bootstrap Java and Spigot BuildTools.
 
+set -uo pipefail
+
 # Variables
 WORK_DIR="$(pwd)"
 BUILD_TOOLS_JAR="$WORK_DIR/BuildTools.jar"

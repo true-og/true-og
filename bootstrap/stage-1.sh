@@ -11,6 +11,9 @@ OS=$(uname -s)
 # Store bootstrap root directory as enviornment variable for later reference
 BOOTROOT=$PWD
 
+# Libc detection variable. Populated in linuxPrompts() when reachable; stays empty on non-linux / unreachable arch paths so later string match defaults to "not glibc".
+MUSLORNOT=""
+
 # Introduce the functionality of the bootstrap to user.
 echo -e "\nWelcome to the TrueOG Server Bootstrap. This script will enable you to build a 100% Open Source Minecraft server based on https://true-og.net's code base.\n\nThis is public domain software created with love by NotAlexNoyle and the TrueOG community. It's free: as in freedom! The way the Minecraft ecosystem should be."
 echo -e "\nYour platform: $OS-$ARCHITECTURE is supported!\n"
@@ -445,7 +448,7 @@ gnuTLSInstall() {
 	./configure --prefix=$PWD/gnutls-build/ --with-included-unistring --with-included-libtasn1 --with-nettle-mini --disable-libdane --without-p11-kit
 
 	# Build GNUTLS from source.
-	LDFLAGS="-L$GMPDIR/gmp-build/lib/ -L$NETTLEDIR/lib/ -L$LIBUNBOUNDDIR/libunbound-build/lib/" CPPFLAGS="-I$GMPDIR/gmp-build/include/ -I$NETTLEDIR/include/ -I$LIBUNBOUNDDIR/libunbound-build/include/" make
+	LDFLAGS="-L$GMPDIR/gmp-build/lib/ -L$NETTLEDIR/lib/" CPPFLAGS="-I$GMPDIR/gmp-build/include/ -I$NETTLEDIR/include/" make
 
 	# Install GNUTLS in a self-contained directory.
 	make install
@@ -764,7 +767,7 @@ git clone --recursive https://github.com/NotAlexNoyle/true-og/ minecraft-server/
 # Switch directories into the git repo.
 cd minecraft-server/
 # Merge pkgsrc directory into one unified Minecraft server directory.
-mv $PKGSRC/ $PWD
+mv $BOOTROOT/pkgsrc/ $PWD
 
 # TODO: Finish java install functions!
 # Install the Adoptium JDK distribution.
