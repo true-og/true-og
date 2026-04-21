@@ -43,12 +43,16 @@ SELF_MAVEN_LOCAL_REPO="$WORK_DIR/.m2/repository"
 
 # Per-plugin output directory overrides.
 # Default: plugins/
-# Special cases: ArenaRegen-OG -> plugins/Duels/extensions/, Essentials-PAPI -> plugins/PlaceholderAPI/expansions/
+# Special cases:
+# ArenaRegen-OG -> plugins/Duels/extensions/
+# Essentials-PAPI -> plugins/PlaceholderAPI/expansions/
+# Statistics-PAPI -> plugins/PlaceholderAPI/expansions/
 plugin_output_dir() {
     local plugin_name="$1"
     case "$plugin_name" in
         ArenaRegen-OG)  echo "$OUTPUT_DIR/Duels/extensions" ;;
         Essentials-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
+        Statistics-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         *)              echo "$OUTPUT_DIR" ;;
     esac
 }
