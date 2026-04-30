@@ -50,7 +50,7 @@ SELF_MAVEN_LOCAL_REPO="$WORK_DIR/.m2/repository"
 plugin_output_dir() {
     local plugin_name="$1"
     case "$plugin_name" in
-        ArenaRegen-OG)  echo "$OUTPUT_DIR/Duels/extensions" ;;
+        ArenaRegen-OG)  echo "$OUTPUT_DIR/Duels-OG/extensions" ;;
         Essentials-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         Server-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         Statistics-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
