@@ -1,6 +1,5 @@
 #
 # WEPIF Configuration File
-# License: https://raw.githubusercontent.com/true-og/WorldEdit/refs/heads/master/LICENSE.txt
 #
 # This file handles permissions configuration for every plugin using WEPIF
 #
@@ -26,9 +25,10 @@ resolvers:
     - bPermissionsResolver
     - GroupManagerResolver
     - NijiPermissionsResolver
-    - VaultResolver
+    - LuckPermsResolver
     - DinnerPermsResolver
     - FlatFilePermissionsResolver
+    disabled: []
 permissions:
     groups:
         default:
