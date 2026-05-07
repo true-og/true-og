@@ -24,21 +24,21 @@
 # License: https://raw.githubusercontent.com/true-og/Spigot-API/refs/heads/master/LICENCE.txt
 messages:
   whitelist: |
-    [§aTrue§cOG§r] §eNetwork §6Temporarily Closed §c:(
-    §4♥ §6Maintenance Mode §4♥
-    §6Server will return soon.
+    §7[§l§aTrue§l§cOG§7] §l§eNetwork §l§cTemporarily Closed :(
+    §4♥ §6In Maintenance Mode §4♥
+    §6Server will return soon (tm).
   unknown-command: Unknown command. Type "/help" for help.
   server-full: |
-    [§aTrue§cOG§r] §eNetwork §6The server is full! §c:(
+    §7[§l§aTrue§l§cOG§7] §l§eNetwork §l§cThe server is full :/
     §4♥ §c200 §6Players Currently Connected §4♥
   outdated-client: |
-    [§aTrue§cOG§r] §eNetwork §6Client is too old! §c:(
-    §4♥ §6Please re-log using 1.8.0-1.21.11 §4♥
+    §7[§l§aTrue§l§cOG§7] §l§eNetwork §l§cYour client is too old! :o
+    §4♥ §6Please re-connect using 1.8.0-1.21.11 §4♥
   outdated-server: |
-    [§aTrue§cOG§r] §eNetwork §6Client is too new! §c:(
+    §7[§l§aTrue§l§cOG§7] §l§eNetwork §l§cYour client is too new! :3
     §4♥ §6Please downgrade to 1.8.0-1.21.11 §4♥
   restart: |
-    [§aTrue§cOG§r] §eNetwork §6Server is restarting... §4♥
+    §7[§l§aTrue§l§cOG§7] §l§eNetwork §eServer is restarting... §4♥
 advancements:
   disable-saving: false
   disabled:
