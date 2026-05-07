@@ -53,6 +53,7 @@ plugin_output_dir() {
         ArenaRegen-OG)  echo "$OUTPUT_DIR/Duels-OG/extensions" ;;
         Essentials-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         LuckPerms-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
+        Player-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         Server-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         Statistics-PAPI) echo "$OUTPUT_DIR/PlaceholderAPI/expansions" ;;
         *)              echo "$OUTPUT_DIR" ;;
