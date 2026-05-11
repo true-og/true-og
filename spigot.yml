@@ -29,13 +29,13 @@ messages:
     §6Server should return soon (TM)
   unknown-command: Unknown command. Type "/help" for help.
   server-full: |
-    §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cThe server is full &e:/
+    §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cThe server is full §e:/
     §4♥ §c200 §6Players Currently Connected §4♥
   outdated-client: |
-    §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cYour client is too old! &e:o
+    §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cYour client is too old! §e:o
     §4♥ §6Please re-connect using 1.8.0-1.21.11 §4♥
   outdated-server: |
-    §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cYour client is too new! &e:c
+    §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cYour client is too new! §e:c
     §4♥ §6Please downgrade to 1.8.0-1.21.11 §4♥
   restart: |
     §7[§a§lTrue§c§lOG §e§lNetwork§7] §eThe server is restarting... §4♥
