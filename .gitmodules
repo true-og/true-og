@@ -37,6 +37,3 @@
 [submodule "intranet/filebrowser-quantum"]
 	path = intranet/filebrowser-quantum
 	url = https://github.com/true-og/filebrowser
-[submodule "intranet/GlitchTip"]
-	path = intranet/GlitchTip
-	url = https://github.com/true-og/GlitchTip
