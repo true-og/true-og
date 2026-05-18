@@ -1,31 +1,25 @@
 # This is a world configuration file for Paper.
 # This file may start empty but can be filled with settings to override ones in the config/paper-world-defaults.yml
 #
-# World: world (minecraft:overworld)
+# World: world_nether (minecraft:the_nether)
 # License: https://raw.githubusercontent.com/true-og/Paper/refs/heads/main/LICENSE.md
+#
+# Anti-Xray is dimension-sensitive: hidden-blocks must match terrain materials in
+# replacement-blocks, otherwise engine-mode 1 will replace ores with the wrong rock type.
 
 _version: 30
 anticheat:
   anti-xray:
     enabled: true
     engine-mode: 1
-    # Block entities (spawner, chest, ender_chest, shulker_box) intentionally excluded:
-    # AntiPieRay-OG owns those via packet-level TileEntity hiding.
     hidden-blocks:
-    - diamond_ore
-    - deepslate_diamond_ore
-    - emerald_ore
-    - deepslate_emerald_ore
-    - gold_ore
-    - deepslate_gold_ore
-    - lapis_ore
-    - deepslate_lapis_ore
-    - mossy_cobblestone
-    - redstone_ore
-    - deepslate_redstone_ore
+    - ancient_debris
+    - nether_gold_ore
+    - nether_quartz_ore
     replacement-blocks:
-    - stone
-    - deepslate
+    - netherrack
+    - basalt
+    - blackstone
     lava-obscures: true
     max-block-height: 128
     update-radius: 2

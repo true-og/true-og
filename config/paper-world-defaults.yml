@@ -18,6 +18,8 @@ anticheat:
   anti-xray:
     enabled: true
     engine-mode: 1
+    # Block entities (spawner, chest, ender_chest, shulker_box) removed:
+    # AntiPieRay-OG owns those via packet-level TileEntity hiding.
     hidden-blocks:
     - diamond_ore
     - deepslate_diamond_ore
@@ -28,10 +30,6 @@ anticheat:
     - lapis_ore
     - deepslate_lapis_ore
     - mossy_cobblestone
-    - spawner
-    - chest
-    - ender_chest
-    - shulker_box
     - redstone_ore
     - deepslate_redstone_ore
     lava-obscures: true
