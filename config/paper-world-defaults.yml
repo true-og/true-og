@@ -27,11 +27,14 @@ anticheat:
     - deepslate_emerald_ore
     - gold_ore
     - deepslate_gold_ore
+    - iron_ore
+    - deepslate_iron_ore
     - lapis_ore
     - deepslate_lapis_ore
     - mossy_cobblestone
     - redstone_ore
     - deepslate_redstone_ore
+    - lava
     lava-obscures: true
     max-block-height: 128
     replacement-blocks:
