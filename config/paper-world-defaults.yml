@@ -34,12 +34,10 @@ anticheat:
     - mossy_cobblestone
     - redstone_ore
     - deepslate_redstone_ore
-    - lava
-    lava-obscures: true
+    lava-obscures: false
     max-block-height: 128
     replacement-blocks:
     - stone
-    - deepslate
     update-radius: 2
     use-permission: false
   obfuscation:
