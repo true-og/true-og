@@ -1489,7 +1489,7 @@ world-settings:
           maximum: 1000000
         teleport-if-outside-border: false
         teleport-on-nether-ceiling-damage: false
-        totem-of-undying-works-in-inventory: true
+        totem-of-undying-works-in-inventory: false
         fix-stuck-in-portal: true
         one-punch-in-creative: true
         sleep-ignore-nearby-mobs: false
