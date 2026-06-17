@@ -19,7 +19,7 @@ sdk use java 17.0.9-graalce
 while true; do
     echo "Starting TrueOG..."
     java -agentpath:$SCRIPT_DIR/SubstAgent/build/libsubstagent.so \
-		 -Xms48G -Xmx48G \
+		 -Xms48G -Xmx48G -Dpaper.explicit-flush=true \
          -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
          -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch \
          -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
