@@ -25,6 +25,9 @@ anticheat:
     - mossy_cobblestone
     - redstone_ore
     - deepslate_redstone_ore
+    - copper_ore
+    - deepslate_copper_ore
+    - deepslate_coal_ore
     replacement-blocks:
     - stone
     lava-obscures: false

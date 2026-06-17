@@ -34,6 +34,9 @@ anticheat:
     - mossy_cobblestone
     - redstone_ore
     - deepslate_redstone_ore
+    - copper_ore
+    - deepslate_copper_ore
+    - deepslate_coal_ore
     lava-obscures: false
     max-block-height: 128
     replacement-blocks:
