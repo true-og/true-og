@@ -191,7 +191,7 @@ commands:
   - testforblock
   - tellraw
   log: true
-  tab-complete: 2
+  tab-complete: 0
   send-namespaced: true
 players:
   disable-saving: false
