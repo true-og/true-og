@@ -30,7 +30,7 @@ echo
 databases=(
   "core_protect"
   "gamemodeinventories"
-  "playtimes"
+  #"playtimes"
   "quickshop"
   "unions"
 )
