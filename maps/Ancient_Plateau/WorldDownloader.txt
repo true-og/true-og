@@ -1,0 +1,4 @@
+#
+#Fri Jan 04 15:28:29 EST 2013
+LinkedWorlds=
+ServerName=Minecraft Server
