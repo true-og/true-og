@@ -28,10 +28,10 @@ echo
 
 # List of databases to process
 databases=(
-  "core_protect"
-  "gamemodeinventories"
+  #"core_protect"
+  #"gamemodeinventories"
   #"playtimes"
-  "quickshop"
+  #"quickshop"
   "unions"
 )
 
