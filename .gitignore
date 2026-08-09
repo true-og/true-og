@@ -28,6 +28,5 @@ bootstrap/.sdkman
 # Non-redistributable server databases.
 databases/*.txt
 databases/databases.tar
-# Temporarily ignore maps
-maps/Shake_It
-map-color-cache.dat
+Loss/
+SP1-hub/
