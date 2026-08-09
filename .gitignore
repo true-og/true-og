@@ -30,3 +30,5 @@ databases/*.txt
 databases/databases.tar
 Loss/
 SP1-hub/
+# ImageFrame cache
+map-color-cache.dat
