@@ -1350,7 +1350,7 @@ world-settings:
         controllable: true
         attributes:
           max_health: 20.0
-          spawn_reinforcements: 0.15
+          spawn_reinforcements: 0.1
         jockey:
           only-babies: true
           chance: 0.05
@@ -1382,7 +1382,7 @@ world-settings:
         controllable: true
         attributes:
           max_health: 20.0
-          spawn_reinforcements: 0.15
+          spawn_reinforcements: 0.1
         jockey:
           only-babies: true
           chance: 0.05
@@ -1400,7 +1400,7 @@ world-settings:
         controllable: true
         attributes:
           max_health: 20.0
-          spawn_reinforcements: 0.15
+          spawn_reinforcements: 0.0
         jockey:
           only-babies: true
           chance: 0.05
