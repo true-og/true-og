@@ -1,0 +1,3 @@
+# Minecraft world region files are binary data, not source code.
+*.mca binary linguist-detectable=false
+*.mcr binary linguist-detectable=false
