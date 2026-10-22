@@ -5,9 +5,9 @@
 [![discord-plural](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/ma9pMYpBU6)
 <a href="https://store.trueog.net/"><img alt="donate-button" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/generic-plural_vector.svg"></a>
 <a href="https://github.com/PurpurMC/Purpur"><img alt="purpur" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/purpur_vector.svg"></a>
-[![NoSystemD](https://raw.githubusercontent.com/true-og/website/main/assets/images/logos/nossytemd.svg)](https://nosystemd.org/)
+[![NoSystemD](https://git.trueog.net/trueog/website/raw/branch/main/assets/images/logos/nossytemd.svg)](https://nosystemd.org/)
 
-![Icon](https://github.com/true-og/website/blob/main/assets/images/logos/Logo-Alternate-Transparent.png)
+![Icon](https://git.trueog.net/trueog/website/raw/branch/main/assets/images/logos/Logo-Alternate-Transparent.png)
 
 </div>
 
@@ -66,7 +66,7 @@ Our admin team is structured as a unionized, democratic worker cooperative. We d
 
 ### To download the full TrueOG Network stack
 
-> git clone https://github.com/true-og/true-og
+> git clone https://git.trueog.net/trueog/true-og.git
 
 > cd true-og
 

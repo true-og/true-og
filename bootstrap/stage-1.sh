@@ -752,10 +752,15 @@ git config --global user.email "$GITEMAIL"
 # Set git username for local session based on user input.
 git config --global user.name "$GITUSERNAME"
 
-# Fetch GitHub's https certificate.
+# Fetch GitHub's https certificate for the unchanged GitHub-hosted submodules.
 gnutls-cli --print-cert www.github.com < /dev/null > www.github.com.certs
-# Tell git where GitHub's https certificate is.
-git config --global http.sslcainfo $PWD/www.github.com.certs
+# Tell git where GitHub's https certificate is without applying it to other hosts.
+git config --global http."https://github.com/".sslCAInfo $PWD/www.github.com.certs
+
+# Fetch Gitea's https certificate for the main TrueOG repository.
+gnutls-cli --print-cert git.trueog.net < /dev/null > git.trueog.net.certs
+# Tell git where Gitea's https certificate is without applying it to the submodules.
+git config --global http."https://git.trueog.net/".sslCAInfo $PWD/git.trueog.net.certs
 
 # Return to bootstrap root directory
 cd $BOOTROOT
@@ -763,7 +768,7 @@ cd $BOOTROOT
 rm -rf trueog-dependencies-temp
 
 # Clone TrueOG repository with submodules.
-git clone --recursive https://github.com/NotAlexNoyle/true-og/ minecraft-server/
+git clone --recursive https://git.trueog.net/trueog/true-og.git minecraft-server/
 # Switch directories into the git repo.
 cd minecraft-server/
 # Merge pkgsrc directory into one unified Minecraft server directory.

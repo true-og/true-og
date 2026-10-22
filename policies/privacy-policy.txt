@@ -1,7 +1,7 @@
 <p><strong>Privacy Policy</strong></p>
 <p><em><a href="https://true-og.net/" target="_blank">TrueOG Network</a> is an independently owned sole proprietorship that operates open-source and community game services. Services are provided by TrueOG Network at no monetary cost to players and are intended for use “as is.”</em></p>
 <p>If you choose to use our Service, you agree to the collection and use of information in accordance with this Privacy Policy. The personal information we collect is used to provide, secure, and improve the Service and to comply with applicable rules (including Mojang / Microsoft policies). We will not use or share your information with anyone except as described in this Privacy Policy.</p>
-<p>Unless otherwise defined here, terms used in this Privacy Policy have the same meanings as in our <a href="https://raw.githubusercontent.com/true-og/true-og/refs/heads/main/policies/terms-of-service.html">Terms of Service</a>.</p>
+<p>Unless otherwise defined here, terms used in this Privacy Policy have the same meanings as in our <a href="https://git.trueog.net/trueog/true-og/raw/branch/main/policies/terms-of-service.html">Terms of Service</a>.</p>
 <p><strong>Information Collection and Use</strong><br>TrueOG Network may collect and process certain personally identifiable information (“Personal Information”), including but not limited to:</p>
 <ul>
   <li>E-mail address;</li>
