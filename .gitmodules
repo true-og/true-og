@@ -40,3 +40,9 @@
 [submodule "intranet/GlitchTip"]
 	path = intranet/GlitchTip
 	url = https://github.com/true-og/GlitchTip
+[submodule "plugin-suites/Future"]
+	path = plugin-suites/Future
+	url = https://git.trueog.net/trueog/Future
+[submodule "plugin-suites/Alternatives"]
+	path = plugin-suites/Alternatives
+	url = https://git.trueog.net/trueog/Alternatives
