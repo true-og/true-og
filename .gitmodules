@@ -61,3 +61,6 @@
 [submodule "tools/build-conventions"]
 	path = tools/build-conventions
 	url = https://git.trueog.net/trueog/build-conventions
+[submodule "tools/PlayerDataExport-OG"]
+	path = tools/PlayerDataExport-OG
+	url = https://git.trueog.net/trueog/PlayerDataExport-OG
