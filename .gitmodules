@@ -1,45 +1,45 @@
 [submodule "website"]
 	path = website
-	url = https://github.com/true-og/website
+	url = https://git.trueog.net/trueog/website
 [submodule "Purpur"]
 	path = Purpur
-	url = https://github.com/true-og/Purpur
+	url = https://git.trueog.net/trueog/Purpur
 [submodule "plugin-suites/OG-Suite"]
 	path = plugin-suites/OG-Suite
-	url = https://github.com/true-og/OG-Suite
+	url = https://git.trueog.net/trueog/OG-Suite
 [submodule "plugin-suites/Hard-Forks"]
 	path = plugin-suites/Hard-Forks
-	url = https://github.com/true-og/Hard-Forks
+	url = https://git.trueog.net/trueog/Hard-Forks
 [submodule "plugin-suites/Soft-Forks"]
 	path = plugin-suites/Soft-Forks
-	url = https://github.com/true-og/Soft-Forks
+	url = https://git.trueog.net/trueog/Soft-Forks
 [submodule "plugin-suites/Third-Party"]
 	path = plugin-suites/Third-Party
-	url = https://github.com/true-og/Third-Party
+	url = https://git.trueog.net/trueog/Third-Party
 [submodule "SubstAgent"]
 	path = SubstAgent
-	url = https://github.com/true-og/SubstAgent
+	url = https://git.trueog.net/trueog/SubstAgent
 [submodule "databases/FerretDB"]
 	path = databases/FerretDB
-	url = https://github.com/true-og/FerretDB
+	url = https://git.trueog.net/trueog/FerretDB
 [submodule "databases/KeyDB"]
 	path = databases/KeyDB
-	url = https://github.com/true-og/KeyDB
+	url = https://git.trueog.net/trueog/KeyDB
 [submodule "intranet/gitea"]
 	path = intranet/gitea
-	url = https://github.com/true-og/gitea
+	url = https://git.trueog.net/trueog/gitea
 [submodule "intranet/JMusicBot"]
 	path = intranet/JMusicBot
-	url = https://github.com/true-og/JMusicBot
+	url = https://git.trueog.net/trueog/JMusicBot
 [submodule "intranet/wekan"]
 	path = intranet/wekan
-	url = https://github.com/true-og/wekan
+	url = https://git.trueog.net/trueog/wekan
 [submodule "intranet/filebrowser-quantum"]
 	path = intranet/filebrowser-quantum
-	url = https://github.com/true-og/filebrowser
+	url = https://git.trueog.net/trueog/filebrowser
 [submodule "intranet/GlitchTip"]
 	path = intranet/GlitchTip
-	url = https://github.com/true-og/GlitchTip
+	url = https://git.trueog.net/trueog/GlitchTip
 [submodule "plugin-suites/Future"]
 	path = plugin-suites/Future
 	url = https://git.trueog.net/trueog/Future
