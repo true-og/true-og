@@ -58,3 +58,6 @@
 [submodule "intranet/Staff-Auth-Frontend"]
 	path = intranet/Staff-Auth-Frontend
 	url = https://git.trueog.net/trueog/Staff-Auth-Frontend
+[submodule "tools/build-conventions"]
+	path = tools/build-conventions
+	url = https://git.trueog.net/trueog/build-conventions
