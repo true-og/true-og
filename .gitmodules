@@ -46,3 +46,6 @@
 [submodule "plugin-suites/Alternatives"]
 	path = plugin-suites/Alternatives
 	url = https://git.trueog.net/trueog/Alternatives
+[submodule "plugin-suites/TrueOG-CTS"]
+	path = plugin-suites/TrueOG-CTS
+	url = https://git.trueog.net/trueog/TrueOG-CTS
