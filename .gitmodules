@@ -52,3 +52,6 @@
 [submodule "plugin-suites/Legacy"]
 	path = plugin-suites/Legacy
 	url = https://git.trueog.net/trueog/Legacy
+[submodule "intranet/Staff-Auth"]
+	path = intranet/Staff-Auth
+	url = https://git.trueog.net/trueog/Staff-Auth
