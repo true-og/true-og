@@ -55,3 +55,6 @@
 [submodule "intranet/Staff-Auth"]
 	path = intranet/Staff-Auth
 	url = https://git.trueog.net/trueog/Staff-Auth
+[submodule "intranet/Staff-Auth-Frontend"]
+	path = intranet/Staff-Auth-Frontend
+	url = https://git.trueog.net/trueog/Staff-Auth-Frontend
