@@ -11,7 +11,7 @@
 
 </div>
 
-TrueOG Network is a 100% free and open source community-oriented Minecraft server. Inspired by the past, but not stuck in it, we bring the "OG" meta to the modern minecraft ecosystem via an expansive suite of [custom plugins](https://github.com/true-og/OG-Suite). The worlds of TrueOG SMP, which are a continuation of the worlds from OG SMP Season 1, will **never** be reset.
+TrueOG Network is a 100% free and open source community-oriented Minecraft server. Inspired by the past, but not stuck in it, we bring the "OG" meta to the modern minecraft ecosystem via an expansive suite of [custom plugins](https://git.trueog.net/trueog/OG-Suite). The worlds of TrueOG SMP, which are a continuation of the worlds from OG SMP Season 1, will **never** be reset.
 
 Join our [Discord](https://discord.gg/ma9pMYpBU6) community to connect with us!
 
