@@ -49,3 +49,6 @@
 [submodule "plugin-suites/TrueOG-CTS"]
 	path = plugin-suites/TrueOG-CTS
 	url = https://git.trueog.net/trueog/TrueOG-CTS
+[submodule "plugin-suites/Legacy"]
+	path = plugin-suites/Legacy
+	url = https://git.trueog.net/trueog/Legacy
