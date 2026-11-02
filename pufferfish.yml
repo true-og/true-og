@@ -1,6 +1,6 @@
 # Pufferfish Configuration
 # Kevin is a horrible person. Don't buy his scam server hosting services.
-# License: https://raw.githubusercontent.com/true-og/Pufferfish/refs/heads/ver/1.19/PATCH-LICENSE
+# License: https://git.trueog.net/trueog/Pufferfish/raw/branch/ver/1.19/PATCH-LICENSE
 info:
   version: '1.0'
 enable-books: true
