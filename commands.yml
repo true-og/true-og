@@ -9,7 +9,7 @@
 #    (If this means nothing to you, just go to https://www.spigotmc.org/go/irc )
 # Forums: https://www.spigotmc.org/
 # Bug tracker: https://www.spigotmc.org/go/bugs
-# License: https://raw.githubusercontent.com/true-og/Bukkit/refs/heads/master/LICENCE.txt
+# License: https://git.trueog.net/trueog/Bukkit/raw/branch/master/LICENCE.txt
 
 command-block-overrides: []
 ignore-vanilla-permissions: false
