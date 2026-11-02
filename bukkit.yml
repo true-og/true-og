@@ -10,7 +10,7 @@
 #    (If this means nothing to you, just go to https://www.spigotmc.org/go/irc )
 # Forums: https://www.spigotmc.org/
 # Bug tracker: https://www.spigotmc.org/go/bugs
-# License: https://raw.githubusercontent.com/true-og/Spigot-API/refs/heads/master/LICENCE.txt
+# License: https://git.trueog.net/trueog/Spigot-API/raw/branch/master/LICENCE.txt
 settings:
   allow-end: true
   warn-on-overload: true
