@@ -21,7 +21,7 @@
 #
 # Discord: https://www.spigotmc.org/go/discord
 # Forums: http://www.spigotmc.org/
-# License: https://raw.githubusercontent.com/true-og/Spigot-API/refs/heads/master/LICENCE.txt
+# License: https://git.trueog.net/trueog/Spigot-API/raw/branch/master/LICENCE.txt
 messages:
   whitelist: |
     §7[§a§lTrue§c§lOG §e§lNetwork§7] §l§cTemporarily Closed &e:(
